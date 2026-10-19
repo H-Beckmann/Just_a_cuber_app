@@ -1,97 +1,73 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# JustACuber
 
-# Getting Started
+App de cubo mágico 3x3: gerador de embaralhamento + cronômetro de speedcubing.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+- **Embaralhamento oficial (random-state).** Um estado é sorteado uniformemente
+  entre os 43 quintilhões possíveis e resolvido por um solver de duas fases
+  (Kociemba, via [`cubejs`](https://github.com/ldez/cubejs)); o inverso da
+  solução é o scramble. É o mesmo princípio do TNoodle, usado nas competições
+  da WCA. As tabelas do solver vêm prontas (veja abaixo), então o primeiro
+  embaralhamento sai em ~200 ms.
+- **Cubo 3D animado.** O cubo gira movimento a movimento ao gerar um novo
+  embaralhamento. Cada sticker é uma `View` posicionada por uma matriz 4x4
+  completa — sem WebGL, sem dependência nativa de gráficos.
+- **Cronômetro.** Segure para preparar (fica verde), solte para começar, toque
+  para parar. Inspeção WCA de 15s opcional, com +2 e DNF automáticos.
+- **Sessão.** Melhor tempo, ao5, ao12 e média, com penalidades editáveis por
+  tempo. Os tempos ficam salvos no aparelho.
 
-## Step 1: Start Metro
-
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Como rodar
 
 ```sh
-# Using npm
 npm start
-
-# OR using Yarn
-yarn start
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
+Em outro terminal:
 
 ```sh
-# Using npm
 npm run android
-
-# OR using Yarn
-yarn android
 ```
 
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+ou
 
 ```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+> As dependências nativas (`@react-native-async-storage/async-storage`) exigem
+> recompilar o app — `npm run android` / `npm run ios` já fazem isso. No iOS,
+> rode `bundle exec pod install` dentro de `ios/` antes.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## As tabelas do solver
 
-## Step 3: Modify your app
+O solver precisa de tabelas de busca. Construí-las leva **~25 s** no celular — o
+Hermes interpreta o JavaScript, não compila, e os laços numéricos arrastam —
+contra **~50 ms** para ler as mesmas tabelas já prontas de um JSON.
 
-Now that you have successfully run the app, let's make changes!
+Por isso `scripts/build-solver-tables.js` as calcula uma vez, numa máquina com
+JIT, e grava `src/lib/solverTables.js` (11 MB). Esse arquivo é **gerado, não
+versionado**: o `postinstall` do npm o reconstrói sozinho. Para refazê-lo à mão:
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+```sh
+npm run build:tables
+```
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+Só é preciso rodar de novo se o `cubejs` for atualizado.
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+## Testes
 
-## Congratulations! :tada:
+```sh
+npm test
+```
 
-You've successfully run and modified your React Native App. :partying_face:
+## Organização
 
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+| Arquivo | O que faz |
+| --- | --- |
+| `src/lib/cube.ts` | Estado do cubo: cada sticker guarda posição e normal em 3D, e um movimento é uma rotação de verdade da camada. Validado contra o `cubejs`. |
+| `src/lib/scramble.ts` | Geração random-state, com reserva random-move. |
+| `src/lib/projection.ts` | Câmera, perspectiva, back-face culling e ordem de desenho. |
+| `src/lib/matrix.ts` | Matrizes 4x4 em column-major (o formato que o React Native espera em `transform: [{matrix}]`). |
+| `src/lib/stats.ts` | Tempos, penalidades e médias no padrão WCA. |
+| `src/components/Cube3D.tsx` | Render e animação dos giros. |
+| `src/screens/TimerScreen.tsx` | Tela principal. |
