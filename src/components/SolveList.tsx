@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { formatSolve, type Penalty, type Solve } from '../lib/stats';
 import { colors } from '../theme';
@@ -55,32 +56,73 @@ export default function SolveList({ solves, onSetPenalty, onDelete, bottomSpace 
         )}
       />
 
-      <Modal visible={selected !== null} transparent animationType="fade" onRequestClose={close}>
-        <Pressable style={styles.backdrop} onPress={close}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
-            <Text style={styles.sheetTime}>{selected ? formatSolve(selected) : ''}</Text>
-            <Text style={styles.sheetScramble}>{selected?.scramble}</Text>
-
-            <View style={styles.sheetRow}>
-              <SheetButton label="OK" onPress={() => applyPenalty('OK')} />
-              <SheetButton label="+2" onPress={() => applyPenalty('+2')} />
-              <SheetButton label="DNF" onPress={() => applyPenalty('DNF')} />
-            </View>
-
-            <SheetButton
-              label="Excluir tempo"
-              danger
-              onPress={() => {
-                if (selected) {
-                  onDelete(selected.id);
-                }
-                close();
-              }}
-            />
-          </Pressable>
-        </Pressable>
+      <Modal
+        visible={selected !== null}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={close}>
+        {/* A Modal is a window of its own, so it needs its own provider to
+            know where the system bars are. */}
+        <SafeAreaProvider>
+          <ActionSheet
+            solve={selected}
+            onClose={close}
+            onPenalty={applyPenalty}
+            onDelete={() => {
+              if (selected) {
+                onDelete(selected.id);
+              }
+              close();
+            }}
+          />
+        </SafeAreaProvider>
       </Modal>
     </>
+  );
+}
+
+function ActionSheet({
+  solve,
+  onClose,
+  onPenalty,
+  onDelete,
+}: {
+  solve: Solve | null;
+  onClose: () => void;
+  onPenalty: (penalty: Penalty) => void;
+  onDelete: () => void;
+}) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable
+        style={[
+          styles.sheet,
+          {
+            // Clears the navigation buttons of the phone, which draw on top of
+            // the sheet; 16 keeps some air under the last button on gesture
+            // navigation, where the inset is small.
+            paddingBottom: Math.max(insets.bottom, 16) + 12,
+            paddingLeft: Math.max(insets.left, 20),
+            paddingRight: Math.max(insets.right, 20),
+          },
+        ]}
+        onPress={() => {}}>
+        <View style={styles.grabber} />
+        <Text style={styles.sheetTime}>{solve ? formatSolve(solve) : ''}</Text>
+        <Text style={styles.sheetScramble}>{solve?.scramble}</Text>
+
+        <View style={styles.sheetRow}>
+          <SheetButton label="OK" onPress={() => onPenalty('OK')} />
+          <SheetButton label="+2" onPress={() => onPenalty('+2')} />
+          <SheetButton label="DNF" onPress={() => onPenalty('DNF')} />
+        </View>
+
+        <SheetButton label="Excluir tempo" danger onPress={onDelete} />
+      </Pressable>
+    </Pressable>
   );
 }
 
@@ -167,9 +209,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 20,
-    paddingBottom: 36,
+    paddingTop: 12,
     gap: 12,
+  },
+  grabber: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
+    marginBottom: 4,
   },
   sheetTime: {
     color: colors.text,
