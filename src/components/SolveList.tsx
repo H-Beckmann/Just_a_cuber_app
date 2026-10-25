@@ -115,9 +115,9 @@ function ActionSheet({
         <Text style={styles.sheetScramble}>{solve?.scramble}</Text>
 
         <View style={styles.sheetRow}>
-          <SheetButton label="OK" onPress={() => onPenalty('OK')} />
-          <SheetButton label="+2" onPress={() => onPenalty('+2')} />
-          <SheetButton label="DNF" onPress={() => onPenalty('DNF')} />
+          <SheetButton grow label="OK" onPress={() => onPenalty('OK')} />
+          <SheetButton grow label="+2" onPress={() => onPenalty('+2')} />
+          <SheetButton grow label="DNF" onPress={() => onPenalty('DNF')} />
         </View>
 
         <SheetButton label="Excluir tempo" danger onPress={onDelete} />
@@ -134,16 +134,20 @@ function SheetButton({
   label,
   onPress,
   danger,
+  grow,
 }: {
   label: string;
   onPress: () => void;
   danger?: boolean;
+  /** Share the width of a row with the other buttons. */
+  grow?: boolean;
 }) {
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
         styles.sheetButton,
+        grow && styles.sheetButtonGrow,
         danger && styles.sheetButtonDanger,
         pressed && styles.sheetButtonPressed,
       ]}>
@@ -238,11 +242,15 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sheetButton: {
-    flex: 1,
     paddingVertical: 14,
     borderRadius: 14,
     backgroundColor: colors.surfaceAlt,
     alignItems: 'center',
+  },
+  // Only for the buttons sharing a row: in the column it would collapse the
+  // height to zero and hide the label.
+  sheetButtonGrow: {
+    flex: 1,
   },
   sheetButtonPressed: {
     opacity: 0.6,
