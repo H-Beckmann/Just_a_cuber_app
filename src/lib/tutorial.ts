@@ -28,6 +28,18 @@ export interface TutorialStep {
 
 export const TUTORIAL: TutorialStep[] = [
   {
+    id: 'pecas',
+    title: 'As peças do cubo',
+    goal: 'Saber o que é centro, aresta e canto.',
+    body: [
+      'O cubo não é feito de 54 adesivos soltos: são 26 peças de três tipos, e cada peça só vai parar onde cabe um tipo igual ao dela.',
+      'Centro: uma cor só, no miolo da face. Os seis centros nunca trocam de lugar entre si, então é o centro que decide a cor daquela face — se o centro de cima é amarelo, a face de cima é a amarela, mesmo que ainda não tenha nenhum amarelo em volta.',
+      'Aresta: duas cores, no meio de cada lado, entre dois cantos. São doze.',
+      'Canto: três cores, nas quinas. São oito.',
+      'Então, quando o tutorial falar "a aresta de cima", é uma das quatro peças de duas cores da camada de cima — a do meio de cada lado, não o centro, que fica no miolo e nunca sai de lá.',
+    ],
+  },
+  {
     id: 'notacao',
     title: 'Como ler os movimentos',
     goal: 'Entender R, U, F e o resto antes de começar.',
@@ -92,7 +104,7 @@ export const TUTORIAL: TutorialStep[] = [
   {
     id: 'segunda-camada',
     title: 'A segunda camada',
-    goal: 'As quatro arestas do meio no lugar.',
+    goal: 'As quatro arestas da camada do meio no lugar.',
     body: [
       'Agora só interessam as arestas de cima que não tenham amarelo. Gire U até a cor da frente dessa aresta casar com o centro da frente — ela forma um T de cabeça para baixo.',
       'Olhe a cor de cima da aresta: se for igual ao centro da direita, ela precisa ir para a direita; se for igual ao da esquerda, para a esquerda.',
@@ -156,7 +168,7 @@ export const TUTORIAL: TutorialStep[] = [
     title: 'Posicionar as arestas amarelas',
     goal: 'Cubo resolvido.',
     body: [
-      'Falta rodar as arestas de cima. Gire U e procure um lado em que a aresta de cima já esteja na cor do centro.',
+      'Falta rodar as quatro arestas de cima — as peças de duas cores entre os cantos. Gire U e procure um lado em que a aresta de cima já esteja na cor do centro daquele lado.',
       'Segure o cubo com essa aresta para trás. O algoritmo gira as outras três entre si.',
       'Se nenhuma aresta estiver certa, aplique uma vez de qualquer jeito: uma delas acerta, e aí você a deixa atrás e repete.',
     ],
