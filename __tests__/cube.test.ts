@@ -160,6 +160,28 @@ describe('facelets', () => {
   });
 });
 
+describe('whole-cube rotations', () => {
+  it('turns every layer at once', () => {
+    const spec = moveSpec(parseMoves('x')[0], 3);
+    expect([...spec.layers].sort()).toEqual([0, 1, 2]);
+  });
+
+  it('x2 brings the bottom face to the top', () => {
+    const turned = applyMoves(solvedCube(3), parseMoves('x2'), 3);
+    for (const sticker of turned.filter(s => s.face === 'D')) {
+      expect(sticker.normal).toEqual([0, 1, 0]);
+    }
+  });
+
+  it('leaves the cube solved: it only moves the point of view', () => {
+    for (const rotation of ['x', "y'", 'z2', "x y' z"]) {
+      expect(isSolved(applyMoves(solvedCube(3), parseMoves(rotation), 3))).toBe(
+        false,
+      );
+    }
+  });
+});
+
 describe('notation', () => {
   it('round-trips through text', () => {
     const text = "R U2 F' Rw' B2 D";
@@ -167,6 +189,12 @@ describe('notation', () => {
   });
 
   it('ignores tokens it does not understand', () => {
-    expect(movesToString(parseMoves('R x2 U'))).toBe('R U');
+    // M, E and S slices are not part of the notation here.
+    expect(movesToString(parseMoves('R M2 U'))).toBe('R U');
+    expect(movesToString(parseMoves('R girar U'))).toBe('R U');
+  });
+
+  it('round-trips whole-cube rotations', () => {
+    expect(movesToString(parseMoves("x y' z2"))).toBe("x y' z2");
   });
 });

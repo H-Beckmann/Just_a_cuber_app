@@ -14,6 +14,7 @@ import { useTabBarSpace } from '../components/TabBar';
 import { MAX_NAME_LENGTH, type MyCube } from '../lib/myCubes';
 import { useSession } from '../state/session';
 import { colors } from '../theme';
+import TutorialScreen from './TutorialScreen';
 
 export default function MenuScreen() {
   const insets = useSafeAreaInsets();
@@ -22,6 +23,7 @@ export default function MenuScreen() {
 
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const submit = useCallback(() => {
     const result = addCube(name);
@@ -60,6 +62,10 @@ export default function MenuScreen() {
     [deleteCube, solves],
   );
 
+  if (showTutorial) {
+    return <TutorialScreen onBack={() => setShowTutorial(false)} />;
+  }
+
   return (
     <View
       style={[
@@ -72,6 +78,19 @@ export default function MenuScreen() {
       ]}
     >
       <Text style={styles.title}>Menu</Text>
+
+      <Pressable
+        onPress={() => setShowTutorial(true)}
+        style={({ pressed }) => [styles.entry, pressed && styles.pressed]}
+      >
+        <View style={styles.entryBody}>
+          <Text style={styles.entryTitle}>Como resolver o cubo</Text>
+          <Text style={styles.entrySubtitle}>
+            Método iniciante, camada por camada, com os algoritmos
+          </Text>
+        </View>
+        <Text style={styles.entryChevron}>›</Text>
+      </Pressable>
 
       <Text style={styles.sectionTitle}>Meus cubos</Text>
       <Text style={styles.sectionHint}>
@@ -159,6 +178,34 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 22,
     fontWeight: '700',
+  },
+  entry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    padding: 14,
+  },
+  entryBody: {
+    flex: 1,
+    gap: 2,
+  },
+  entryTitle: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  entrySubtitle: {
+    color: colors.muted,
+    fontSize: 12,
+  },
+  entryChevron: {
+    color: colors.muted,
+    fontSize: 22,
+    lineHeight: 24,
   },
   sectionTitle: {
     color: colors.text,

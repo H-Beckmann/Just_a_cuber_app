@@ -77,6 +77,8 @@ interface Props {
   size: number;
   /** Moves played from the solved state whenever `playToken` changes. */
   moves: Move[];
+  /** Applied at once before playing, to set up the case being shown. */
+  setup?: Move[];
   playToken: number;
   speed?: number;
 }
@@ -84,7 +86,7 @@ interface Props {
 const EMPTY_IDS: Set<number> = new Set();
 
 const Cube3D = forwardRef<Cube3DHandle, Props>(function CubeRenderer(
-  { size, moves, playToken, speed = 1 },
+  { size, moves, setup, playToken, speed = 1 },
   ref,
 ) {
   const [stickers, setStickers] = useState<Sticker[]>(() =>
@@ -234,11 +236,14 @@ const Cube3D = forwardRef<Cube3DHandle, Props>(function CubeRenderer(
 
   useEffect(() => {
     cancelFrame();
-    const solved = solvedCube(CUBE_SIZE);
-    stickersRef.current = solved;
+    const start =
+      setup && setup.length > 0
+        ? applyMoves(solvedCube(CUBE_SIZE), setup, CUBE_SIZE)
+        : solvedCube(CUBE_SIZE);
+    stickersRef.current = start;
     queueRef.current = moves;
     indexRef.current = 0;
-    setStickers(solved);
+    setStickers(start);
     setActive(null);
     if (moves.length > 0) {
       playNext();

@@ -20,6 +20,11 @@ App de cubo mágico 3x3: gerador de embaralhamento + cronômetro de speedcubing.
   foi feito — nada é salvo sem resposta. Os tempos ficam salvos no aparelho.
 - **Meus cubos.** Cadastro simples na aba Menu: cada tempo pode registrar com
   qual cubo você resolveu.
+- **Tutorial.** O método iniciante passo a passo, da margarida à última camada,
+  com os algoritmos tocáveis: cada um toca no cubo 3D partindo exatamente do
+  caso que ele resolve. Os algoritmos são verificados por teste contra o motor
+  do cubo — se um deles mexesse numa camada que o texto diz preservar, o teste
+  quebraria.
 
 ## Como rodar
 
@@ -80,3 +85,5 @@ npm test
 | `src/screens/TimerScreen.tsx` | Cronômetro, cubo e o aviso de salvar. |
 | `src/screens/TimesScreen.tsx` | Tempos da sessão. |
 | `src/screens/MenuScreen.tsx` | Menu e cadastro de cubos. |
+| `src/lib/tutorial.ts` | Texto e algoritmos do método iniciante. |
+| `src/screens/TutorialScreen.tsx` | Tutorial com a demo animada. |

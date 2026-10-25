@@ -106,16 +106,21 @@ export function solvedCube(n = 3): Sticker[] {
   return stickers;
 }
 
+/** Negating zero gives -0, which prints and serialises as its own thing. */
+function neg(value: number): number {
+  return value === 0 ? 0 : -value;
+}
+
 /** Exact 90° rotation of a vector around a world axis. `dir` is +1 or -1. */
 export function rotate90(axis: 0 | 1 | 2, dir: 1 | -1, v: Vec3): Vec3 {
   const [x, y, z] = v;
   if (axis === 0) {
-    return dir === -1 ? [x, z, -y] : [x, -z, y];
+    return dir === -1 ? [x, z, neg(y)] : [x, neg(z), y];
   }
   if (axis === 1) {
-    return dir === -1 ? [-z, y, x] : [z, y, -x];
+    return dir === -1 ? [neg(z), y, x] : [z, y, neg(x)];
   }
-  return dir === -1 ? [y, -x, z] : [-y, x, z];
+  return dir === -1 ? [y, neg(x), z] : [neg(y), x, z];
 }
 
 export function moveSpec(move: Move, n = 3): MoveSpec {
@@ -263,7 +268,9 @@ export function invertMoves(moves: Move[]): Move[] {
 }
 
 export function moveToString(move: Move): string {
-  const base = move.wide > 1 ? `${move.face}w` : move.face;
+  const rotation =
+    move.wide >= WHOLE_CUBE ? FACE_TO_ROTATION[move.face] : undefined;
+  const base = rotation ?? (move.wide > 1 ? `${move.face}w` : move.face);
   const suffix = move.amount === 2 ? '2' : move.amount === 3 ? "'" : '';
   return base + suffix;
 }
@@ -272,17 +279,31 @@ export function movesToString(moves: Move[]): string {
   return moves.map(moveToString).join(' ');
 }
 
-const MOVE_PATTERN = /^([URFDLB])(w?)(2|'|’)?$/;
+/**
+ * Whole-cube rotations. They are the same thing as turning every layer at
+ * once, so they ride on the existing machinery: x turns like R, y like U and
+ * z like F. On a 3x3 "every layer" means three of them.
+ */
+const ROTATION_TO_FACE: Record<string, Face> = { x: 'R', y: 'U', z: 'F' };
+const FACE_TO_ROTATION: Partial<Record<Face, string>> = {
+  R: 'x',
+  U: 'y',
+  F: 'z',
+};
+const WHOLE_CUBE = 3;
+
+const MOVE_PATTERN = /^([URFDLBxyz])(w?)(2|'|’)?$/;
 
 export function parseMove(token: string): Move | null {
   const match = MOVE_PATTERN.exec(token.trim());
   if (!match) {
     return null;
   }
-  const [, face, wide, suffix] = match;
+  const [, letter, wide, suffix] = match;
+  const rotation = ROTATION_TO_FACE[letter];
   return {
-    face: face as Face,
-    wide: wide ? 2 : 1,
+    face: rotation ?? (letter as Face),
+    wide: rotation ? WHOLE_CUBE : wide ? 2 : 1,
     amount: suffix === '2' ? 2 : suffix ? 3 : 1,
   };
 }
