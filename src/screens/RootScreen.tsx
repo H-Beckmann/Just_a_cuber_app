@@ -23,17 +23,20 @@ const TABS: TabDefinition<TabKey>[] = [
 
 export default function RootScreen() {
   const [active, setActive] = useState<TabKey>('timer');
+  const [timerRunning, setTimerRunning] = useState(false);
 
   return (
     <View style={styles.root}>
       <Layer visible={active === 'timer'}>
-        <TimerScreen />
+        <TimerScreen onRunningChange={setTimerRunning} />
       </Layer>
       <Layer visible={active === 'times'}>
         <TimesScreen />
       </Layer>
 
-      <TabBar tabs={TABS} active={active} onChange={setActive} />
+      {/* Out of the way during a solve: the whole screen stops the timer, and
+          a stray tap must not change tabs. */}
+      {!timerRunning && <TabBar tabs={TABS} active={active} onChange={setActive} />}
     </View>
   );
 }

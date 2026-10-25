@@ -29,8 +29,21 @@ export const CUBE_SIZE = 3;
 /** Sticker size in cubie units; the rest is the gap between stickers. */
 export const STICKER_SIZE = 0.88;
 const CORNER_RADIUS = 0.1;
-export const CAMERA_YAW = (-34 * Math.PI) / 180;
-export const CAMERA_PITCH = (26 * Math.PI) / 180;
+/** Where the camera sits by default: slightly above, slightly to the side. */
+export const DEFAULT_CAMERA: CameraAngles = {
+  yaw: (-34 * Math.PI) / 180,
+  pitch: (26 * Math.PI) / 180,
+};
+
+/** Looking straight down would flip the cube, so the pitch stops short. */
+export const MAX_PITCH = (85 * Math.PI) / 180;
+
+export interface CameraAngles {
+  /** Turn around the vertical axis, in radians. */
+  yaw: number;
+  /** Tilt, in radians: positive shows more of the top. */
+  pitch: number;
+}
 
 export interface Layout {
   /** Pixels per cubie. */
@@ -42,11 +55,15 @@ export interface Layout {
   vp: Mat4;
 }
 
-export function buildLayout(size: number, n = CUBE_SIZE): Layout {
+export function buildLayout(
+  size: number,
+  angles: CameraAngles = DEFAULT_CAMERA,
+  n = CUBE_SIZE,
+): Layout {
   // 1.85 leaves room for the corners of the cube and for the extra width a
   // layer takes while it is turning.
   const k = size / (n * 1.85);
-  const camera = multiply(rotationX(CAMERA_PITCH), rotationY(CAMERA_YAW));
+  const camera = multiply(rotationX(angles.pitch), rotationY(angles.yaw));
   const vp = multiply(
     perspective(k * n * 7),
     multiply(scaling(k, -k, k), camera), // -k flips Y: the world is up, the screen is down

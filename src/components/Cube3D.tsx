@@ -16,7 +16,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { PanResponder, StyleSheet, View } from 'react-native';
 
 import {
   applyMove,
@@ -34,12 +34,21 @@ import {
   cutQuads,
   stickerQuad,
   CUBE_SIZE,
+  DEFAULT_CAMERA,
+  MAX_PITCH,
+  type CameraAngles,
   type Quad,
 } from '../lib/projection';
 import { cubeBody, faceColors } from '../theme';
 
 const QUARTER_TURN_MS = 135;
 const HALF_TURN_MS = 190;
+/** Radians of camera movement per pixel dragged. */
+const DRAG_SENSITIVITY = 0.01;
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
 
 function easeInOut(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -60,6 +69,8 @@ interface ActiveMove {
 export interface Cube3DHandle {
   /** Drops the animation and jumps straight to the scrambled state. */
   finishNow: () => void;
+  /** Puts the camera back where it started. */
+  resetCamera: () => void;
 }
 
 interface Props {
@@ -79,11 +90,57 @@ const Cube3D = forwardRef<Cube3DHandle, Props>(function CubeRenderer(
   const [stickers, setStickers] = useState<Sticker[]>(() => solvedCube(CUBE_SIZE));
   const [active, setActive] = useState<ActiveMove | null>(null);
 
+  const [camera, setCamera] = useState<CameraAngles>(DEFAULT_CAMERA);
+
+  const cameraRef = useRef(camera);
+  const dragStartRef = useRef(camera);
+  const pendingCameraRef = useRef<CameraAngles | null>(null);
+  const dragFrameRef = useRef<number | null>(null);
+
   const stickersRef = useRef(stickers);
   const queueRef = useRef<Move[]>([]);
   const indexRef = useRef(0);
   const frameRef = useRef<number | null>(null);
   const startedAtRef = useRef<number | null>(null);
+
+  // Touch events arrive faster than the screen refreshes, and every one of
+  // them would recompute all 27 matrices; this keeps it to one per frame.
+  const moveCamera = useCallback((next: CameraAngles) => {
+    pendingCameraRef.current = next;
+    if (dragFrameRef.current !== null) {
+      return;
+    }
+    dragFrameRef.current = requestAnimationFrame(() => {
+      dragFrameRef.current = null;
+      const pending = pendingCameraRef.current;
+      if (pending) {
+        cameraRef.current = pending;
+        setCamera(pending);
+      }
+    });
+  }, []);
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_event, gesture) =>
+          Math.abs(gesture.dx) > 2 || Math.abs(gesture.dy) > 2,
+        onPanResponderGrant: () => {
+          dragStartRef.current = cameraRef.current;
+        },
+        onPanResponderMove: (_event, gesture) => {
+          const start = dragStartRef.current;
+          moveCamera({
+            // Dragging takes the front face with it: to the side it turns, and
+            // downwards it tips the top towards the viewer.
+            yaw: start.yaw + gesture.dx * DRAG_SENSITIVITY,
+            pitch: clamp(start.pitch + gesture.dy * DRAG_SENSITIVITY, -MAX_PITCH, MAX_PITCH),
+          });
+        },
+      }),
+    [moveCamera],
+  );
 
   const cancelFrame = useCallback(() => {
     if (frameRef.current !== null) {
@@ -145,7 +202,21 @@ const Cube3D = forwardRef<Cube3DHandle, Props>(function CubeRenderer(
     setActive(null);
   }, [cancelFrame]);
 
-  useImperativeHandle(ref, () => ({ finishNow }), [finishNow]);
+  const resetCamera = useCallback(() => {
+    cameraRef.current = DEFAULT_CAMERA;
+    setCamera(DEFAULT_CAMERA);
+  }, []);
+
+  useImperativeHandle(ref, () => ({ finishNow, resetCamera }), [finishNow, resetCamera]);
+
+  useEffect(
+    () => () => {
+      if (dragFrameRef.current !== null) {
+        cancelAnimationFrame(dragFrameRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     cancelFrame();
@@ -163,7 +234,7 @@ const Cube3D = forwardRef<Cube3DHandle, Props>(function CubeRenderer(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playToken, cancelFrame, playNext]);
 
-  const layout = useMemo(() => buildLayout(size), [size]);
+  const layout = useMemo(() => buildLayout(size, camera), [size, camera]);
   const movingIds = active ? active.ids : EMPTY_IDS;
 
   // Recomputed when a move starts or ends, not on every frame.
@@ -200,7 +271,7 @@ const Cube3D = forwardRef<Cube3DHandle, Props>(function CubeRenderer(
   }
 
   return (
-    <View pointerEvents="none" style={[styles.stage, { width: size, height: size }]}>
+    <View {...panResponder.panHandlers} style={[styles.stage, { width: size, height: size }]}>
       {quads.map(quad => (
         <Facelet key={quad.key} quad={quad} stageSize={size} />
       ))}

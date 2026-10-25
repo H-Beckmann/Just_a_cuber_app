@@ -9,6 +9,8 @@ import {
   cutQuads,
   quadScreenCentre,
   stickerQuad,
+  DEFAULT_CAMERA,
+  MAX_PITCH,
   type Quad,
 } from '../src/lib/projection';
 
@@ -53,6 +55,39 @@ describe('camera', () => {
     expect(u.y).toBeLessThan(f.y); // the screen Y axis points down
     expect(r.x).toBeGreaterThan(f.x);
     expect(Math.abs(f.x)).toBeLessThan(SIZE / 2);
+  });
+
+  it('shows the other three faces when dragged around', () => {
+    const turned = buildLayout(SIZE, {
+      yaw: DEFAULT_CAMERA.yaw + Math.PI,
+      pitch: -DEFAULT_CAMERA.pitch,
+    });
+    const visible = cube.filter(
+      sticker => stickerQuad(turned, sticker, '#fff', null) !== null,
+    );
+    expect(visible).toHaveLength(27);
+    expect([...new Set(visible.map(sticker => sticker.face))].sort()).toEqual(['B', 'D', 'L']);
+  });
+
+  it('never loses the cube, whatever angle it is dragged to', () => {
+    for (const yaw of [0, 1, 2, 3, 4, 5, 6]) {
+      for (const pitch of [-MAX_PITCH, -0.6, 0, 0.6, MAX_PITCH]) {
+        const dragged = buildLayout(SIZE, { yaw, pitch });
+        const quads = cube
+          .map(sticker => stickerQuad(dragged, sticker, '#fff', null))
+          .filter((quad): quad is Quad => quad !== null);
+
+        // Three faces from a corner, two from an edge, one from straight on.
+        expect(quads.length).toBeGreaterThanOrEqual(9);
+        expect(quads.length).toBeLessThanOrEqual(27);
+        for (const quad of quads) {
+          const { x, y } = quadScreenCentre(quad);
+          expect(Number.isFinite(x) && Number.isFinite(y)).toBe(true);
+          expect(Math.abs(x) + quad.sizePx / 2).toBeLessThan(SIZE / 2);
+          expect(Math.abs(y) + quad.sizePx / 2).toBeLessThan(SIZE / 2);
+        }
+      }
+    }
   });
 
   it('keeps the whole cube inside the stage', () => {

@@ -8,11 +8,13 @@ App de cubo mágico 3x3: gerador de embaralhamento + cronômetro de speedcubing.
   solução é o scramble. É o mesmo princípio do TNoodle, usado nas competições
   da WCA. As tabelas do solver vêm prontas (veja abaixo), então o primeiro
   embaralhamento sai em ~200 ms.
-- **Cubo 3D animado.** O cubo gira movimento a movimento ao gerar um novo
-  embaralhamento. Cada sticker é uma `View` posicionada por uma matriz 4x4
+- **Cubo 3D animado e manipulável.** O cubo gira movimento a movimento ao
+  gerar um novo embaralhamento, e dá para girá-lo com o dedo para ver as
+  outras faces. Cada sticker é uma `View` posicionada por uma matriz 4x4
   completa — sem WebGL, sem dependência nativa de gráficos.
-- **Cronômetro.** Segure para preparar (fica verde), solte para começar, toque
-  para parar. Inspeção WCA de 15s opcional, com +2 e DNF automáticos.
+- **Cronômetro.** Segure o botão Iniciar para preparar (fica verde), solte
+  para começar, toque em qualquer lugar da tela para parar. Inspeção WCA de
+  15s opcional, com +2 e DNF automáticos.
 - **Sessão.** Melhor tempo, ao5, ao12 e média, com penalidades editáveis por
   tempo. Os tempos ficam salvos no aparelho.
 

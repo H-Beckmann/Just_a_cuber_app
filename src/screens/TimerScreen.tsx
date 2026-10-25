@@ -19,12 +19,17 @@ import { formatSolve, type Penalty, type Solve } from '../lib/stats';
 import { useSession } from '../state/session';
 import { colors } from '../theme';
 
-/** How long the pad has to be held before the timer is armed. */
+/** How long the start button has to be held before the timer is armed. */
 const HOLD_MS = 350;
 
 type Phase = 'idle' | 'inspecting' | 'holding' | 'ready' | 'running';
 
-export default function TimerScreen() {
+interface Props {
+  /** Lets the root hide the tab bar while a solve is being timed. */
+  onRunningChange: (running: boolean) => void;
+}
+
+export default function TimerScreen({ onRunningChange }: Props) {
   const insets = useSafeAreaInsets();
   const bottomSpace = useTabBarSpace();
   const { lastSolve, addSolve, inspection, setInspection } = useSession();
@@ -39,8 +44,13 @@ export default function TimerScreen() {
 
   const cubeRef = useRef<Cube3DHandle>(null);
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const ignoreReleaseRef = useRef(false);
   const penaltyRef = useRef<Penalty>('OK');
+
+  const running = phase === 'running';
+
+  useEffect(() => {
+    onRunningChange(running);
+  }, [running, onRunningChange]);
 
   useEffect(
     () => () => {
@@ -56,8 +66,8 @@ export default function TimerScreen() {
     setPlayToken(token => token + 1);
   }, []);
 
-  // The solver tables block the JS thread for a few seconds, so they are built
-  // after the first frame; the cube stays solved until the first scramble.
+  // The tables are parsed after the first frame, so the cube stays solved
+  // until the first scramble is ready.
   useEffect(() => {
     let alive = true;
     initScrambler().then(() => {
@@ -101,17 +111,10 @@ export default function TimerScreen() {
     newScramble();
   }, [addSolve, newScramble, scramble, solveStartedAt]);
 
-  const handlePressIn = useCallback(() => {
-    if (phase === 'running') {
-      ignoreReleaseRef.current = true;
-      stopSolve();
-      return;
-    }
-
+  const handleStartPressIn = useCallback(() => {
     cubeRef.current?.finishNow();
 
     if (phase === 'idle' && inspection) {
-      ignoreReleaseRef.current = true;
       setInspectionStartedAt(Date.now());
       setPhase('inspecting');
       return;
@@ -119,13 +122,9 @@ export default function TimerScreen() {
 
     setPhase('holding');
     holdTimerRef.current = setTimeout(() => setPhase('ready'), HOLD_MS);
-  }, [inspection, phase, stopSolve]);
+  }, [inspection, phase]);
 
-  const handlePressOut = useCallback(() => {
-    if (ignoreReleaseRef.current) {
-      ignoreReleaseRef.current = false;
-      return;
-    }
+  const handleStartPressOut = useCallback(() => {
     if (holdTimerRef.current) {
       clearTimeout(holdTimerRef.current);
       holdTimerRef.current = null;
@@ -152,56 +151,88 @@ export default function TimerScreen() {
 
   const timeColor =
     phase === 'ready' ? colors.ready : phase === 'holding' ? colors.warning : colors.text;
-  const cubeOpacity = phase === 'running' ? 0 : phase === 'idle' || phase === 'inspecting' ? 1 : 0.3;
+
+  const startLabel =
+    phase === 'ready'
+      ? 'Solte!'
+      : phase === 'holding'
+      ? 'Segure…'
+      : phase === 'inspecting'
+      ? 'Segure'
+      : inspection
+      ? 'Inspeção'
+      : 'Iniciar';
+
+  const hint = running
+    ? 'toque em qualquer lugar para parar'
+    : phase === 'ready'
+    ? 'solte para começar'
+    : phase === 'holding'
+    ? 'segure…'
+    : phase === 'inspecting'
+    ? 'segure o botão para preparar'
+    : 'arraste o cubo para girar';
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          paddingTop: Math.max(insets.top, 8) + 8,
-          // Room for the floating navigation bar and, under it, the buttons of
-          // the phone.
-          paddingBottom: bottomSpace,
-          paddingLeft: Math.max(insets.left, 16),
-          paddingRight: Math.max(insets.right, 16),
-        },
-      ]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          JustACuber <Text style={styles.titleAccent}>3x3</Text>
-        </Text>
-        <View style={styles.headerRight}>
-          <Text style={styles.switchLabel}>Inspeção</Text>
-          <Switch
-            value={inspection}
-            onValueChange={setInspection}
-            trackColor={{ false: colors.border, true: colors.accent }}
-            thumbColor={colors.text}
-          />
+    <View style={styles.root}>
+      <View
+        style={[
+          styles.content,
+          {
+            paddingTop: Math.max(insets.top, 8) + 8,
+            // Room for the floating navigation bar and, under it, the buttons
+            // of the phone.
+            paddingBottom: bottomSpace,
+            paddingLeft: Math.max(insets.left, 16),
+            paddingRight: Math.max(insets.right, 16),
+          },
+        ]}>
+        <View style={styles.header}>
+          <Text style={styles.title}>
+            JustACuber <Text style={styles.titleAccent}>3x3</Text>
+          </Text>
+          <View style={styles.headerRight}>
+            <Text style={styles.switchLabel}>Inspeção</Text>
+            <Switch
+              value={inspection}
+              onValueChange={setInspection}
+              disabled={running}
+              trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor={colors.text}
+            />
+          </View>
         </View>
-      </View>
 
-      <View style={styles.scrambleRow}>
-        <Text style={[styles.scramble, !scramblerReady && styles.scramblePending]} numberOfLines={3}>
-          {phase === 'running'
-            ? ' '
-            : scramblerReady
-            ? movesToString(scramble)
-            : 'preparando o gerador oficial…'}
-        </Text>
-        <Pressable
-          onPress={replayScramble}
-          hitSlop={10}
-          disabled={scramble.length === 0}
-          style={({ pressed }) => [styles.replay, pressed && styles.pressed]}>
-          <Text style={styles.replayIcon}>↻</Text>
-        </Pressable>
-      </View>
+        <View style={styles.scrambleRow}>
+          <Text
+            style={[styles.scramble, !scramblerReady && styles.scramblePending]}
+            numberOfLines={3}>
+            {running
+              ? ' '
+              : scramblerReady
+              ? movesToString(scramble)
+              : 'preparando o gerador oficial…'}
+          </Text>
+          <Pressable
+            onPress={replayScramble}
+            hitSlop={8}
+            disabled={scramble.length === 0 || running}
+            accessibilityLabel="Repetir a animação do embaralhamento"
+            style={({ pressed }) => [styles.roundButton, pressed && styles.pressed]}>
+            <Text style={styles.roundButtonIcon}>↻</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => cubeRef.current?.resetCamera()}
+            hitSlop={8}
+            disabled={running}
+            accessibilityLabel="Recentralizar o cubo"
+            style={({ pressed }) => [styles.roundButton, pressed && styles.pressed]}>
+            <Text style={styles.roundButtonIcon}>⌖</Text>
+          </Pressable>
+        </View>
 
-      <Pressable style={styles.pad} onPressIn={handlePressIn} onPressOut={handlePressOut}>
         <View style={styles.timeRow}>
-          {phase === 'running' && solveStartedAt !== null ? (
+          {running && solveStartedAt !== null ? (
             <RunningClock startedAt={solveStartedAt} style={[styles.time, { color: timeColor }]} />
           ) : phase !== 'idle' && inspectionStartedAt !== null ? (
             <InspectionClock
@@ -217,37 +248,57 @@ export default function TimerScreen() {
 
         <View style={styles.stage} onLayout={onStageLayout}>
           {stageSize > 0 && (
-            <View style={{ opacity: cubeOpacity }}>
+            <View style={running ? styles.hidden : undefined}>
               <Cube3D ref={cubeRef} size={stageSize} moves={scramble} playToken={playToken} />
             </View>
           )}
         </View>
 
-        <Text style={styles.hint}>
-          {phase === 'running'
-            ? 'toque para parar'
-            : phase === 'ready'
-            ? 'solte para começar'
-            : phase === 'holding'
-            ? 'segure...'
-            : phase === 'inspecting'
-            ? 'segure para preparar'
-            : inspection
-            ? 'toque para iniciar a inspeção'
-            : 'segure para preparar'}
-        </Text>
-      </Pressable>
+        <Text style={styles.hint}>{hint}</Text>
 
-      <Pressable
-        onPress={newScramble}
-        disabled={!scramblerReady}
-        style={({ pressed }) => [
-          styles.scrambleButton,
-          !scramblerReady && styles.scrambleButtonDisabled,
-          pressed && styles.pressed,
-        ]}>
-        <Text style={styles.scrambleButtonText}>Embaralhar</Text>
-      </Pressable>
+        <View style={[styles.buttonRow, running && styles.hidden]}>
+          <Pressable
+            onPress={newScramble}
+            disabled={!scramblerReady || running}
+            style={({ pressed }) => [
+              styles.button,
+              styles.secondaryButton,
+              !scramblerReady && styles.buttonDisabled,
+              pressed && styles.pressed,
+            ]}>
+            <Text style={styles.secondaryButtonText}>Embaralhar</Text>
+          </Pressable>
+
+          <Pressable
+            onPressIn={handleStartPressIn}
+            onPressOut={handleStartPressOut}
+            style={({ pressed }) => [
+              styles.button,
+              styles.startButton,
+              phase === 'holding' && styles.startButtonHolding,
+              phase === 'ready' && styles.startButtonReady,
+              pressed && phase === 'idle' && styles.pressed,
+            ]}>
+            <Text
+              style={[
+                styles.startButtonText,
+                (phase === 'holding' || phase === 'ready') && styles.startButtonTextArmed,
+              ]}>
+              {startLabel}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* While the timer runs the whole screen stops it — including over the
+          tab bar, which the root hides. */}
+      {running && (
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPressIn={stopSolve}
+          accessibilityLabel="Parar o cronômetro"
+        />
+      )}
     </View>
   );
 }
@@ -255,9 +306,12 @@ export default function TimerScreen() {
 const monospace = Platform.select({ ios: 'Menlo', default: 'monospace' });
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  content: {
+    flex: 1,
     gap: 12,
   },
   header: {
@@ -286,7 +340,7 @@ const styles = StyleSheet.create({
   scrambleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
     minHeight: 44,
   },
   scramble: {
@@ -301,7 +355,7 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontStyle: 'italic',
   },
-  replay: {
+  roundButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -311,19 +365,15 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
   },
-  replayIcon: {
+  roundButtonIcon: {
     color: colors.text,
     fontSize: 18,
     lineHeight: 22,
   },
-  pad: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   timeRow: {
     height: 62,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   time: {
     fontSize: 46,
@@ -337,27 +387,57 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  hidden: {
+    opacity: 0,
+  },
   hint: {
     color: colors.muted,
     fontSize: 12,
     letterSpacing: 0.4,
     textTransform: 'uppercase',
-    marginTop: 4,
+    textAlign: 'center',
   },
-  scrambleButton: {
-    backgroundColor: colors.accent,
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  button: {
+    flex: 1,
     borderRadius: 16,
-    paddingVertical: 16,
+    paddingVertical: 18,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  scrambleButtonDisabled: {
-    backgroundColor: colors.surfaceAlt,
+  buttonDisabled: {
+    opacity: 0.5,
   },
-  scrambleButtonText: {
+  secondaryButton: {
+    backgroundColor: colors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  secondaryButtonText: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  startButton: {
+    backgroundColor: colors.accent,
+  },
+  startButtonHolding: {
+    backgroundColor: colors.warning,
+  },
+  startButtonReady: {
+    backgroundColor: colors.ready,
+  },
+  startButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.3,
+  },
+  startButtonTextArmed: {
+    color: colors.background,
   },
   pressed: {
     opacity: 0.7,
