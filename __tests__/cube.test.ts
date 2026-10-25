@@ -63,7 +63,9 @@ describe('moves', () => {
   it('only touches the stickers of the layer that turns', () => {
     const cube = solvedCube(3);
     const spec = moveSpec(R, 3);
-    const touched = cube.filter(sticker => stickerLayer(sticker, spec.axis, 3) === 2);
+    const touched = cube.filter(
+      sticker => stickerLayer(sticker, spec.axis, 3) === 2,
+    );
     expect(touched).toHaveLength(9 + 4 * 3); // the R face plus a strip on four faces
 
     const turned = applyMove(cube, R, 3);
@@ -89,16 +91,24 @@ describe('moves', () => {
   });
 
   it('is undone by the inverse sequence', () => {
-    const moves = parseMoves("F2 L2 R2 B D2 L2 R2 B2 L2 U2 L2 F' R B' U L2 D B' R2 F'");
+    const moves = parseMoves(
+      "F2 L2 R2 B D2 L2 R2 B2 L2 U2 L2 F' R B' U L2 D B' R2 F'",
+    );
     const scrambled = applyMoves(solvedCube(3), moves, 3);
     expect(isSolved(scrambled)).toBe(false);
     expect(isSolved(applyMoves(scrambled, invertMoves(moves), 3))).toBe(true);
   });
 
   it('keeps nine stickers of each colour', () => {
-    const scrambled = applyMoves(solvedCube(3), parseMoves("R U2 F' D L B2 R' U"), 3);
+    const scrambled = applyMoves(
+      solvedCube(3),
+      parseMoves("R U2 F' D L B2 R' U"),
+      3,
+    );
     for (const face of ['U', 'R', 'F', 'D', 'L', 'B']) {
-      expect(scrambled.filter(sticker => sticker.face === face)).toHaveLength(9);
+      expect(scrambled.filter(sticker => sticker.face === face)).toHaveLength(
+        9,
+      );
     }
   });
 
@@ -123,13 +133,20 @@ describe('moves', () => {
 
 describe('facelets', () => {
   it('reads a solved cube in URFDLB order', () => {
-    const solved = ['U', 'R', 'F', 'D', 'L', 'B'].map(face => face.repeat(9)).join('');
+    const solved = ['U', 'R', 'F', 'D', 'L', 'B']
+      .map(face => face.repeat(9))
+      .join('');
     expect(faceletString(solvedCube(3))).toBe(solved);
   });
 
   it('sends the top row of F to L after U', () => {
     expect(faceletString(applyMove(solvedCube(3), U, 3))).toBe(
-      'UUUUUUUUU' + 'BBBRRRRRR' + 'RRRFFFFFF' + 'DDDDDDDDD' + 'FFFLLLLLL' + 'LLLBBBBBB',
+      'UUUUUUUUU' +
+        'BBBRRRRRR' +
+        'RRRFFFFFF' +
+        'DDDDDDDDD' +
+        'FFFLLLLLL' +
+        'LLLBBBBBB',
     );
   });
 

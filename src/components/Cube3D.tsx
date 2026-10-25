@@ -87,7 +87,9 @@ const Cube3D = forwardRef<Cube3DHandle, Props>(function CubeRenderer(
   { size, moves, playToken, speed = 1 },
   ref,
 ) {
-  const [stickers, setStickers] = useState<Sticker[]>(() => solvedCube(CUBE_SIZE));
+  const [stickers, setStickers] = useState<Sticker[]>(() =>
+    solvedCube(CUBE_SIZE),
+  );
   const [active, setActive] = useState<ActiveMove | null>(null);
 
   const [camera, setCamera] = useState<CameraAngles>(DEFAULT_CAMERA);
@@ -135,7 +137,11 @@ const Cube3D = forwardRef<Cube3DHandle, Props>(function CubeRenderer(
             // Dragging takes the front face with it: to the side it turns, and
             // downwards it tips the top towards the viewer.
             yaw: start.yaw + gesture.dx * DRAG_SENSITIVITY,
-            pitch: clamp(start.pitch + gesture.dy * DRAG_SENSITIVITY, -MAX_PITCH, MAX_PITCH),
+            pitch: clamp(
+              start.pitch + gesture.dy * DRAG_SENSITIVITY,
+              -MAX_PITCH,
+              MAX_PITCH,
+            ),
           });
         },
       }),
@@ -172,10 +178,15 @@ const Cube3D = forwardRef<Cube3DHandle, Props>(function CubeRenderer(
       if (startedAtRef.current === null) {
         startedAtRef.current = now;
       }
-      const progress = Math.min(1, (now - startedAtRef.current) / durationFor(move, speed));
+      const progress = Math.min(
+        1,
+        (now - startedAtRef.current) / durationFor(move, speed),
+      );
 
       if (progress < 1) {
-        setActive(previous => (previous ? { ...previous, progress } : previous));
+        setActive(previous =>
+          previous ? { ...previous, progress } : previous,
+        );
         frameRef.current = requestAnimationFrame(step);
         return;
       }
@@ -207,7 +218,10 @@ const Cube3D = forwardRef<Cube3DHandle, Props>(function CubeRenderer(
     setCamera(DEFAULT_CAMERA);
   }, []);
 
-  useImperativeHandle(ref, () => ({ finishNow, resetCamera }), [finishNow, resetCamera]);
+  useImperativeHandle(ref, () => ({ finishNow, resetCamera }), [
+    finishNow,
+    resetCamera,
+  ]);
 
   useEffect(
     () => () => {
@@ -253,7 +267,10 @@ const Cube3D = forwardRef<Cube3DHandle, Props>(function CubeRenderer(
   }, [stickers, layout, movingIds]);
 
   const rotation = active
-    ? rotationAroundAxis(active.spec.axis, active.spec.angle * easeInOut(active.progress))
+    ? rotationAroundAxis(
+        active.spec.axis,
+        active.spec.angle * easeInOut(active.progress),
+      )
     : null;
 
   const quads: Quad[] = [];
@@ -271,7 +288,10 @@ const Cube3D = forwardRef<Cube3DHandle, Props>(function CubeRenderer(
   }
 
   return (
-    <View {...panResponder.panHandlers} style={[styles.stage, { width: size, height: size }]}>
+    <View
+      {...panResponder.panHandlers}
+      style={[styles.stage, { width: size, height: size }]}
+    >
       {quads.map(quad => (
         <Facelet key={quad.key} quad={quad} stageSize={size} />
       ))}

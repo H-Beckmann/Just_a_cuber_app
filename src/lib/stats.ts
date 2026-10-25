@@ -52,7 +52,9 @@ export function formatAverage(value: AverageResult): string {
 }
 
 export function bestSingle(solves: Solve[]): AverageResult {
-  const times = solves.map(effectiveMs).filter((ms): ms is number => ms !== null);
+  const times = solves
+    .map(effectiveMs)
+    .filter((ms): ms is number => ms !== null);
   if (times.length === 0) {
     return solves.length > 0 ? 'DNF' : null;
   }

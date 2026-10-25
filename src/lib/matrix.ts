@@ -48,7 +48,11 @@ export function rotationZ(rad: number): Mat4 {
 
 /** Rotation around the world axis 0 = X, 1 = Y, 2 = Z. */
 export function rotationAroundAxis(axis: 0 | 1 | 2, rad: number): Mat4 {
-  return axis === 0 ? rotationX(rad) : axis === 1 ? rotationY(rad) : rotationZ(rad);
+  return axis === 0
+    ? rotationX(rad)
+    : axis === 1
+    ? rotationY(rad)
+    : rotationZ(rad);
 }
 
 export function scaling(sx: number, sy: number, sz: number): Mat4 {

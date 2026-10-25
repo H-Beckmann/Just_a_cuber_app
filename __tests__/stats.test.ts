@@ -43,7 +43,13 @@ describe('penalties', () => {
 });
 
 describe('averages', () => {
-  const five = [solve(10000), solve(12000), solve(14000), solve(16000), solve(30000)];
+  const five = [
+    solve(10000),
+    solve(12000),
+    solve(14000),
+    solve(16000),
+    solve(30000),
+  ];
 
   it('needs enough solves', () => {
     expect(averageOf(five.slice(0, 4), 5)).toBeNull();
@@ -61,7 +67,13 @@ describe('averages', () => {
   });
 
   it('treats one DNF as the worst time', () => {
-    const withDnf = [solve(10000), solve(12000), solve(14000), solve(16000), solve(20000, 'DNF')];
+    const withDnf = [
+      solve(10000),
+      solve(12000),
+      solve(14000),
+      solve(16000),
+      solve(20000, 'DNF'),
+    ];
     // best (10) and the DNF are dropped: (12 + 14 + 16) / 3
     expect(averageOf(withDnf, 5)).toBe(14000);
   });
@@ -79,7 +91,13 @@ describe('averages', () => {
   });
 
   it('counts a +2 with the penalty included', () => {
-    const withPlusTwo = [solve(10000), solve(12000), solve(14000), solve(16000), solve(13000, '+2')];
+    const withPlusTwo = [
+      solve(10000),
+      solve(12000),
+      solve(14000),
+      solve(16000),
+      solve(13000, '+2'),
+    ];
     // times become 10, 12, 13+2=15, 14, 16 -> drop 10 and 16 -> (12 + 15 + 14) / 3
     expect(averageOf(withPlusTwo, 5)).toBeCloseTo(13666.67, 0);
   });
@@ -88,7 +106,9 @@ describe('averages', () => {
 describe('session numbers', () => {
   it('finds the best single, penalties included', () => {
     expect(bestSingle([])).toBeNull();
-    expect(bestSingle([solve(12000), solve(9000, '+2'), solve(10500)])).toBe(10500);
+    expect(bestSingle([solve(12000), solve(9000, '+2'), solve(10500)])).toBe(
+      10500,
+    );
     expect(bestSingle([solve(12000, 'DNF')])).toBe('DNF');
   });
 

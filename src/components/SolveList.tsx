@@ -1,6 +1,16 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 import { formatSolve, type Penalty, type Solve } from '../lib/stats';
 import { colors } from '../theme';
@@ -13,7 +23,12 @@ interface Props {
   bottomSpace?: number;
 }
 
-export default function SolveList({ solves, onSetPenalty, onDelete, bottomSpace = 0 }: Props) {
+export default function SolveList({
+  solves,
+  onSetPenalty,
+  onDelete,
+  bottomSpace = 0,
+}: Props) {
   const [selected, setSelected] = useState<Solve | null>(null);
   const newestFirst = useMemo(() => [...solves].reverse(), [solves]);
 
@@ -42,7 +57,8 @@ export default function SolveList({ solves, onSetPenalty, onDelete, bottomSpace 
         renderItem={({ item, index }) => (
           <Pressable
             onPress={() => setSelected(item)}
-            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}>
+            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+          >
             <Text style={styles.index}>{solves.length - index}</Text>
             <View style={styles.rowBody}>
               <Text style={[styles.time, item.penalty === 'DNF' && styles.dnf]}>
@@ -61,7 +77,8 @@ export default function SolveList({ solves, onSetPenalty, onDelete, bottomSpace 
         transparent
         animationType="fade"
         statusBarTranslucent
-        onRequestClose={close}>
+        onRequestClose={close}
+      >
         {/* A Modal is a window of its own, so it needs its own provider to
             know where the system bars are. */}
         <SafeAreaProvider>
@@ -109,7 +126,8 @@ function ActionSheet({
             paddingRight: Math.max(insets.right, 20),
           },
         ]}
-        onPress={() => {}}>
+        onPress={() => {}}
+      >
         <View style={styles.grabber} />
         <Text style={styles.sheetTime}>{solve ? formatSolve(solve) : ''}</Text>
         <Text style={styles.sheetScramble}>{solve?.scramble}</Text>
@@ -150,8 +168,13 @@ function SheetButton({
         grow && styles.sheetButtonGrow,
         danger && styles.sheetButtonDanger,
         pressed && styles.sheetButtonPressed,
-      ]}>
-      <Text style={[styles.sheetButtonText, danger && styles.sheetButtonTextDanger]}>{label}</Text>
+      ]}
+    >
+      <Text
+        style={[styles.sheetButtonText, danger && styles.sheetButtonTextDanger]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }

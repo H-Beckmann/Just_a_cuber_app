@@ -35,11 +35,17 @@ interface Props<Key extends string> {
   onChange: (key: Key) => void;
 }
 
-export default function TabBar<Key extends string>({ tabs, active, onChange }: Props<Key>) {
+export default function TabBar<Key extends string>({
+  tabs,
+  active,
+  onChange,
+}: Props<Key>) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.wrapper, { bottom: Math.max(insets.bottom, BAR_MARGIN) }]}>
+    <View
+      style={[styles.wrapper, { bottom: Math.max(insets.bottom, BAR_MARGIN) }]}
+    >
       <View style={styles.bar}>
         {tabs.map(tab => {
           const selected = tab.key === active;
@@ -56,7 +62,8 @@ export default function TabBar<Key extends string>({ tabs, active, onChange }: P
                 styles.item,
                 selected && styles.itemSelected,
                 pressed && styles.itemPressed,
-              ]}>
+              ]}
+            >
               <tab.Icon size={21} color={color} />
               <Text style={[styles.label, { color }]}>{tab.label}</Text>
             </Pressable>

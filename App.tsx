@@ -5,7 +5,10 @@
  */
 
 import { StatusBar } from 'react-native';
-import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  initialWindowMetrics,
+} from 'react-native-safe-area-context';
 
 import RootScreen from './src/screens/RootScreen';
 import { SessionProvider } from './src/state/session';

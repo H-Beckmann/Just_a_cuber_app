@@ -84,7 +84,10 @@ function pick<T>(items: T[], rng: Rng): T {
  * Fallback generator: random moves, dropping the two cases that waste a move —
  * the same face twice in a row, and the A B A pattern on a single axis.
  */
-export function randomMoveScramble(length = FALLBACK_LENGTH, rng: Rng = Math.random): Move[] {
+export function randomMoveScramble(
+  length = FALLBACK_LENGTH,
+  rng: Rng = Math.random,
+): Move[] {
   const moves: Move[] = [];
   let previous: Face | null = null;
   let beforePrevious: Face | null = null;
@@ -94,7 +97,11 @@ export function randomMoveScramble(length = FALLBACK_LENGTH, rng: Rng = Math.ran
       if (face === previous) {
         return false;
       }
-      if (previous !== null && face === beforePrevious && OPPOSITE[face] === previous) {
+      if (
+        previous !== null &&
+        face === beforePrevious &&
+        OPPOSITE[face] === previous
+      ) {
         return false;
       }
       return true;

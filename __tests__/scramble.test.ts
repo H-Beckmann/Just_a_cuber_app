@@ -4,7 +4,12 @@
 
 import Cube from 'cubejs';
 
-import { applyMoves, isSolved, moveToString, solvedCube } from '../src/lib/cube';
+import {
+  applyMoves,
+  isSolved,
+  moveToString,
+  solvedCube,
+} from '../src/lib/cube';
 import {
   FALLBACK_LENGTH,
   initScrambler,
@@ -13,7 +18,14 @@ import {
   randomStateScramble,
 } from '../src/lib/scramble';
 
-const OPPOSITE: Record<string, string> = { U: 'D', D: 'U', R: 'L', L: 'R', F: 'B', B: 'F' };
+const OPPOSITE: Record<string, string> = {
+  U: 'D',
+  D: 'U',
+  R: 'L',
+  L: 'R',
+  F: 'B',
+  B: 'F',
+};
 
 describe('random-move fallback', () => {
   it('has the expected length', () => {
@@ -41,11 +53,15 @@ describe('random-move fallback', () => {
         return state / 2147483648;
       };
     };
-    expect(randomMoveScramble(20, seeded())).toEqual(randomMoveScramble(20, seeded()));
+    expect(randomMoveScramble(20, seeded())).toEqual(
+      randomMoveScramble(20, seeded()),
+    );
   });
 
   it('actually mixes the cube', () => {
-    expect(isSolved(applyMoves(solvedCube(3), randomMoveScramble(), 3))).toBe(false);
+    expect(isSolved(applyMoves(solvedCube(3), randomMoveScramble(), 3))).toBe(
+      false,
+    );
   });
 });
 

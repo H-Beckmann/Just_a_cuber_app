@@ -50,4 +50,6 @@ const header = `/**
 fs.writeFileSync(OUT, `${header}module.exports = '${json}';\n`);
 
 const mb = (fs.statSync(OUT).size / 1048576).toFixed(2);
-console.log(`escrito ${path.relative(path.join(__dirname, '..'), OUT)} (${mb} MB)`);
+console.log(
+  `escrito ${path.relative(path.join(__dirname, '..'), OUT)} (${mb} MB)`,
+);

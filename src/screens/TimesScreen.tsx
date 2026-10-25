@@ -33,21 +33,25 @@ export default function TimesScreen() {
           paddingLeft: Math.max(insets.left, 16),
           paddingRight: Math.max(insets.right, 16),
         },
-      ]}>
+      ]}
+    >
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Tempos</Text>
           <Text style={styles.subtitle}>
             {solves.length === 0
               ? 'sessão vazia'
-              : `${solves.length} ${solves.length === 1 ? 'resolução' : 'resoluções'} nesta sessão`}
+              : `${solves.length} ${
+                  solves.length === 1 ? 'resolução' : 'resoluções'
+                } nesta sessão`}
           </Text>
         </View>
         {solves.length > 0 && (
           <Pressable
             onPress={confirmClear}
             hitSlop={8}
-            style={({ pressed }) => [styles.clear, pressed && styles.pressed]}>
+            style={({ pressed }) => [styles.clear, pressed && styles.pressed]}
+          >
             <Text style={styles.clearText}>Limpar</Text>
           </Pressable>
         )}
@@ -56,7 +60,9 @@ export default function TimesScreen() {
       <StatsPanel solves={solves} />
 
       <View style={styles.listHint}>
-        <Text style={styles.hint}>toque em um tempo para marcar +2, DNF ou excluir</Text>
+        <Text style={styles.hint}>
+          toque em um tempo para marcar +2, DNF ou excluir
+        </Text>
       </View>
 
       <SolveList

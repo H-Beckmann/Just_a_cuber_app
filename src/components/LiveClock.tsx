@@ -67,6 +67,9 @@ export function InspectionClock({
     return <Text style={style}>+2</Text>;
   }
 
-  const remaining = Math.max(1, Math.ceil((INSPECTION_SECONDS * 1000 - elapsed) / 1000));
+  const remaining = Math.max(
+    1,
+    Math.ceil((INSPECTION_SECONDS * 1000 - elapsed) / 1000),
+  );
   return <Text style={style}>{remaining}</Text>;
 }

@@ -2,7 +2,12 @@
  * @format
  */
 
-import { moveSpec, solvedCube, stickersInMove, type Face } from '../src/lib/cube';
+import {
+  moveSpec,
+  solvedCube,
+  stickersInMove,
+  type Face,
+} from '../src/lib/cube';
 import { rotationAroundAxis } from '../src/lib/matrix';
 import {
   buildLayout,
@@ -66,7 +71,11 @@ describe('camera', () => {
       sticker => stickerQuad(turned, sticker, '#fff', null) !== null,
     );
     expect(visible).toHaveLength(27);
-    expect([...new Set(visible.map(sticker => sticker.face))].sort()).toEqual(['B', 'D', 'L']);
+    expect([...new Set(visible.map(sticker => sticker.face))].sort()).toEqual([
+      'B',
+      'D',
+      'L',
+    ]);
   });
 
   it('never loses the cube, whatever angle it is dragged to', () => {
@@ -99,7 +108,12 @@ describe('camera', () => {
   });
 
   it('draws nearer stickers on top', () => {
-    const f = stickerQuad(layout, cube.find(s => s.face === 'F')!, '#fff', null)!;
+    const f = stickerQuad(
+      layout,
+      cube.find(s => s.face === 'F')!,
+      '#fff',
+      null,
+    )!;
     const b = cube.find(s => s.face === 'B')!;
     expect(stickerQuad(layout, b, '#fff', null)).toBeNull(); // culled
     expect(f.zIndex).toBeGreaterThan(1000); // in front of the centre of the cube
@@ -112,10 +126,16 @@ describe('turning a layer', () => {
   const moving = stickersInMove(cube, spec, 3);
 
   it('sweeps the stickers of the layer across the screen', () => {
-    const front = cube.find(sticker => sticker.face === 'F' && moving.has(sticker.id))!;
+    const front = cube.find(
+      sticker => sticker.face === 'F' && moving.has(sticker.id),
+    )!;
     const before = quadScreenCentre(stickerQuad(layout, front, '#fff', null)!);
-    const after = quadScreenCentre(stickerQuad(layout, front, '#fff', halfway)!);
-    expect(Math.hypot(after.x - before.x, after.y - before.y)).toBeGreaterThan(5);
+    const after = quadScreenCentre(
+      stickerQuad(layout, front, '#fff', halfway)!,
+    );
+    expect(Math.hypot(after.x - before.x, after.y - before.y)).toBeGreaterThan(
+      5,
+    );
   });
 
   it('leaves the other layers alone', () => {
@@ -129,7 +149,9 @@ describe('turning a layer', () => {
   });
 
   it('hides a sticker once it has tilted away from the camera', () => {
-    const top = cube.find(sticker => sticker.face === 'U' && moving.has(sticker.id))!;
+    const top = cube.find(
+      sticker => sticker.face === 'U' && moving.has(sticker.id),
+    )!;
     expect(stickerQuad(layout, top, '#fff', halfway)).toBeNull();
   });
 

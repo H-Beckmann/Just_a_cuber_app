@@ -150,7 +150,11 @@ export function stickerLayer(sticker: Sticker, axis: 0 | 1 | 2, n = 3): number {
   return Math.round(cubieCentre + (n - 1) / 2);
 }
 
-export function stickersInMove(stickers: Sticker[], spec: MoveSpec, n = 3): Set<number> {
+export function stickersInMove(
+  stickers: Sticker[],
+  spec: MoveSpec,
+  n = 3,
+): Set<number> {
   const ids = new Set<number>();
   for (const sticker of stickers) {
     if (spec.layers.has(stickerLayer(sticker, spec.axis, n))) {
@@ -179,7 +183,11 @@ export function applyMove(stickers: Sticker[], move: Move, n = 3): Sticker[] {
   });
 }
 
-export function applyMoves(stickers: Sticker[], moves: Move[], n = 3): Sticker[] {
+export function applyMoves(
+  stickers: Sticker[],
+  moves: Move[],
+  n = 3,
+): Sticker[] {
   return moves.reduce((acc, move) => applyMove(acc, move, n), stickers);
 }
 
@@ -198,7 +206,10 @@ export function isSolved(stickers: Sticker[]): boolean {
  * Reading order of each face in the standard facelet notation: for every face,
  * the direction of a row step and of a column step, as axis/sign pairs.
  */
-const FACELET_READING: Record<Face, { row: [0 | 1 | 2, number]; col: [0 | 1 | 2, number] }> = {
+const FACELET_READING: Record<
+  Face,
+  { row: [0 | 1 | 2, number]; col: [0 | 1 | 2, number] }
+> = {
   U: { row: [2, 1], col: [0, 1] }, // back to front, left to right
   R: { row: [1, -1], col: [2, -1] }, // top to bottom, front to back
   F: { row: [1, -1], col: [0, 1] }, // top to bottom, left to right

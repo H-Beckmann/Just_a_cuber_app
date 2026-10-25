@@ -103,7 +103,9 @@ export function buildQuad(
   const restV = cross(restNormal, restU);
 
   const centre = rotation ? transformPoint(rotation, restCentre) : restCentre;
-  const normal = rotation ? transformDirection(rotation, restNormal) : restNormal;
+  const normal = rotation
+    ? transformDirection(rotation, restNormal)
+    : restNormal;
   const u = rotation ? transformDirection(rotation, restU) : restU;
   const v = rotation ? transformDirection(rotation, restV) : restV;
 
@@ -113,6 +115,7 @@ export function buildQuad(
 
   const inv = 1 / layout.k; // the local coordinates of a View are in pixels
 
+  // prettier-ignore
   const model: Mat4 = [
     u[0] * inv, u[1] * inv, u[2] * inv, 0,
     v[0] * inv, v[1] * inv, v[2] * inv, 0,
@@ -175,12 +178,27 @@ export function cutQuads(
 
   const quads: Quad[] = [];
 
-  const still = buildQuad(layout, 'cut-static', color, staticCentre, staticNormal, n);
+  const still = buildQuad(
+    layout,
+    'cut-static',
+    color,
+    staticCentre,
+    staticNormal,
+    n,
+  );
   if (still) {
     quads.push(still);
   }
 
-  const turning = buildQuad(layout, 'cut-layer', color, layerCentre, layerNormal, n, rotation);
+  const turning = buildQuad(
+    layout,
+    'cut-layer',
+    color,
+    layerCentre,
+    layerNormal,
+    n,
+    rotation,
+  );
   if (turning) {
     quads.push(turning);
   }

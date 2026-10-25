@@ -36,16 +36,25 @@ export default function RootScreen() {
 
       {/* Out of the way during a solve: the whole screen stops the timer, and
           a stray tap must not change tabs. */}
-      {!timerRunning && <TabBar tabs={TABS} active={active} onChange={setActive} />}
+      {!timerRunning && (
+        <TabBar tabs={TABS} active={active} onChange={setActive} />
+      )}
     </View>
   );
 }
 
-function Layer({ visible, children }: { visible: boolean; children: React.ReactNode }) {
+function Layer({
+  visible,
+  children,
+}: {
+  visible: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <View
       style={[StyleSheet.absoluteFill, !visible && styles.hidden]}
-      pointerEvents={visible ? 'auto' : 'none'}>
+      pointerEvents={visible ? 'auto' : 'none'}
+    >
       {children}
     </View>
   );

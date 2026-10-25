@@ -12,7 +12,12 @@ import React, {
   useState,
 } from 'react';
 
-import { loadSettings, loadSolves, saveSettings, saveSolves } from '../lib/storage';
+import {
+  loadSettings,
+  loadSolves,
+  saveSettings,
+  saveSolves,
+} from '../lib/storage';
 import type { Penalty, Solve } from '../lib/stats';
 
 interface SessionValue {
@@ -38,7 +43,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [storedSolves, settings] = await Promise.all([loadSolves(), loadSettings()]);
+      const [storedSolves, settings] = await Promise.all([
+        loadSolves(),
+        loadSettings(),
+      ]);
       if (!alive) {
         return;
       }
@@ -68,7 +76,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setPenalty = useCallback((id: string, penalty: Penalty) => {
-    setSolves(previous => previous.map(solve => (solve.id === id ? { ...solve, penalty } : solve)));
+    setSolves(previous =>
+      previous.map(solve => (solve.id === id ? { ...solve, penalty } : solve)),
+    );
   }, []);
 
   const deleteSolve = useCallback((id: string) => {
@@ -91,10 +101,20 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       clearSession,
       setInspection,
     }),
-    [solves, loaded, inspection, addSolve, setPenalty, deleteSolve, clearSession],
+    [
+      solves,
+      loaded,
+      inspection,
+      addSolve,
+      setPenalty,
+      deleteSolve,
+      clearSession,
+    ],
   );
 
-  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
+  return (
+    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
+  );
 }
 
 export function useSession(): SessionValue {

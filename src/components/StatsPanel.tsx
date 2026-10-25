@@ -1,7 +1,13 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { averageOf, bestSingle, formatAverage, sessionMean, type Solve } from '../lib/stats';
+import {
+  averageOf,
+  bestSingle,
+  formatAverage,
+  sessionMean,
+  type Solve,
+} from '../lib/stats';
 import { colors } from '../theme';
 
 function Cell({ label, value }: { label: string; value: string }) {
