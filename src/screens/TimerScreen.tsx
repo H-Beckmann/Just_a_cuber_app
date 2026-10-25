@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Cube3D, { type Cube3DHandle } from '../components/Cube3D';
+import { CubeIcon, PlayIcon } from '../components/icons';
 import { InspectionClock, RunningClock, inspectionPenaltyFor } from '../components/LiveClock';
 import { useTabBarSpace } from '../components/TabBar';
 import { movesToString, type Move } from '../lib/cube';
@@ -47,6 +48,7 @@ export default function TimerScreen({ onRunningChange }: Props) {
   const penaltyRef = useRef<Penalty>('OK');
 
   const running = phase === 'running';
+  const hasScramble = scramble.length > 0;
 
   useEffect(() => {
     onRunningChange(running);
@@ -84,6 +86,13 @@ export default function TimerScreen({ onRunningChange }: Props) {
 
   const replayScramble = useCallback(() => {
     setPlayToken(token => token + 1);
+  }, []);
+
+  /** Back to the start: cube solved, no scramble on screen, camera centred. */
+  const resetCube = useCallback(() => {
+    setScramble([]);
+    setPlayToken(token => token + 1);
+    cubeRef.current?.resetCamera();
   }, []);
 
   const startSolve = useCallback(() => {
@@ -205,29 +214,39 @@ export default function TimerScreen({ onRunningChange }: Props) {
 
         <View style={styles.scrambleRow}>
           <Text
-            style={[styles.scramble, !scramblerReady && styles.scramblePending]}
+            style={[styles.scramble, (!scramblerReady || !hasScramble) && styles.scramblePending]}
             numberOfLines={3}>
             {running
               ? ' '
-              : scramblerReady
+              : !scramblerReady
+              ? 'preparando o gerador oficial…'
+              : hasScramble
               ? movesToString(scramble)
-              : 'preparando o gerador oficial…'}
+              : 'toque em Embaralhar para gerar'}
           </Text>
           <Pressable
             onPress={replayScramble}
             hitSlop={8}
-            disabled={scramble.length === 0 || running}
+            disabled={!hasScramble || running}
             accessibilityLabel="Repetir a animação do embaralhamento"
-            style={({ pressed }) => [styles.roundButton, pressed && styles.pressed]}>
-            <Text style={styles.roundButtonIcon}>↻</Text>
+            style={({ pressed }) => [
+              styles.roundButton,
+              !hasScramble && styles.roundButtonDisabled,
+              pressed && styles.pressed,
+            ]}>
+            <PlayIcon size={18} color={hasScramble ? colors.text : colors.muted} />
           </Pressable>
           <Pressable
-            onPress={() => cubeRef.current?.resetCamera()}
+            onPress={resetCube}
             hitSlop={8}
-            disabled={running}
-            accessibilityLabel="Recentralizar o cubo"
-            style={({ pressed }) => [styles.roundButton, pressed && styles.pressed]}>
-            <Text style={styles.roundButtonIcon}>⌖</Text>
+            disabled={!hasScramble || running}
+            accessibilityLabel="Deixar o cubo resolvido"
+            style={({ pressed }) => [
+              styles.roundButton,
+              !hasScramble && styles.roundButtonDisabled,
+              pressed && styles.pressed,
+            ]}>
+            <CubeIcon size={17} color={hasScramble ? colors.text : colors.muted} />
           </Pressable>
         </View>
 
@@ -365,10 +384,8 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
   },
-  roundButtonIcon: {
-    color: colors.text,
-    fontSize: 18,
-    lineHeight: 22,
+  roundButtonDisabled: {
+    opacity: 0.5,
   },
   timeRow: {
     height: 62,

@@ -82,7 +82,43 @@ export function ClockIcon({ size = 22, color }: IconProps) {
   );
 }
 
+/** A play triangle: replays the animation of the scramble. */
+export function PlayIcon({ size = 22, color }: IconProps) {
+  const width = size * 0.6;
+  const height = size * 0.66;
+
+  return (
+    <View style={[styles.centred, { width: size, height: size }]}>
+      <View
+        style={[
+          styles.triangle,
+          {
+            borderTopWidth: height / 2,
+            borderBottomWidth: height / 2,
+            borderLeftWidth: width,
+            borderLeftColor: color,
+            // Nudged right so the triangle looks centred, not just measured so.
+            marginLeft: width * 0.3,
+          },
+        ]}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  centred: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  overlay: {
+    position: 'absolute',
+  },
+  // A triangle made out of borders: no font, no SVG.
+  triangle: {
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
