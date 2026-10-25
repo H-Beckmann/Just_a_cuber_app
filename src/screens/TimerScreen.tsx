@@ -168,13 +168,14 @@ export default function TimerScreen({ onRunningChange }: Props) {
     addSolve(solve);
     setLastCubeId(cubeForSolve);
     setPending(null);
-    newScramble();
-  }, [addSolve, cubeForSolve, newScramble, pending, setLastCubeId]);
+    // Back to a solved cube: the next scramble comes from the button.
+    resetScramble();
+  }, [addSolve, cubeForSolve, pending, resetScramble, setLastCubeId]);
 
   const discardPending = useCallback(() => {
     setPending(null);
-    newScramble();
-  }, [newScramble]);
+    resetScramble();
+  }, [resetScramble]);
 
   const handleStartPressIn = useCallback(() => {
     cubeRef.current?.finishNow();
