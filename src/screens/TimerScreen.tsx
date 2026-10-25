@@ -11,11 +11,19 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Cube3D, { type Cube3DHandle } from '../components/Cube3D';
-import { CubeIcon, PlayIcon } from '../components/icons';
-import { InspectionClock, RunningClock, inspectionPenaltyFor } from '../components/LiveClock';
+import { CubeIcon, RecenterIcon } from '../components/icons';
+import {
+  InspectionClock,
+  RunningClock,
+  inspectionPenaltyFor,
+} from '../components/LiveClock';
 import { useTabBarSpace } from '../components/TabBar';
 import { movesToString, type Move } from '../lib/cube';
-import { generateScramble, initScrambler, isScramblerReady } from '../lib/scramble';
+import {
+  generateScramble,
+  initScrambler,
+  isScramblerReady,
+} from '../lib/scramble';
 import { formatSolve, type Penalty, type Solve } from '../lib/stats';
 import { useSession } from '../state/session';
 import { colors } from '../theme';
@@ -39,7 +47,9 @@ export default function TimerScreen({ onRunningChange }: Props) {
   const [playToken, setPlayToken] = useState(0);
   const [scramblerReady, setScramblerReady] = useState(isScramblerReady);
   const [phase, setPhase] = useState<Phase>('idle');
-  const [inspectionStartedAt, setInspectionStartedAt] = useState<number | null>(null);
+  const [inspectionStartedAt, setInspectionStartedAt] = useState<number | null>(
+    null,
+  );
   const [solveStartedAt, setSolveStartedAt] = useState<number | null>(null);
   const [stageSize, setStageSize] = useState(0);
 
@@ -84,21 +94,23 @@ export default function TimerScreen({ onRunningChange }: Props) {
     };
   }, [newScramble]);
 
-  const replayScramble = useCallback(() => {
+  /** Clears the scramble and leaves the cube solved. */
+  const resetScramble = useCallback(() => {
+    setScramble([]);
     setPlayToken(token => token + 1);
   }, []);
 
-  /** Back to the start: cube solved, no scramble on screen, camera centred. */
-  const resetCube = useCallback(() => {
-    setScramble([]);
-    setPlayToken(token => token + 1);
+  /** Undoes the dragging: back to the angle the cube starts at. */
+  const resetOrientation = useCallback(() => {
     cubeRef.current?.resetCamera();
   }, []);
 
   const startSolve = useCallback(() => {
     cubeRef.current?.finishNow();
     penaltyRef.current =
-      inspectionStartedAt !== null ? inspectionPenaltyFor(Date.now() - inspectionStartedAt) : 'OK';
+      inspectionStartedAt !== null
+        ? inspectionPenaltyFor(Date.now() - inspectionStartedAt)
+        : 'OK';
     setInspectionStartedAt(null);
     setSolveStartedAt(Date.now());
     setPhase('running');
@@ -159,7 +171,11 @@ export default function TimerScreen({ onRunningChange }: Props) {
   }, []);
 
   const timeColor =
-    phase === 'ready' ? colors.ready : phase === 'holding' ? colors.warning : colors.text;
+    phase === 'ready'
+      ? colors.ready
+      : phase === 'holding'
+      ? colors.warning
+      : colors.text;
 
   const startLabel =
     phase === 'ready'
@@ -195,7 +211,8 @@ export default function TimerScreen({ onRunningChange }: Props) {
             paddingLeft: Math.max(insets.left, 16),
             paddingRight: Math.max(insets.right, 16),
           },
-        ]}>
+        ]}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>
             JustACuber <Text style={styles.titleAccent}>3x3</Text>
@@ -214,8 +231,12 @@ export default function TimerScreen({ onRunningChange }: Props) {
 
         <View style={styles.scrambleRow}>
           <Text
-            style={[styles.scramble, (!scramblerReady || !hasScramble) && styles.scramblePending]}
-            numberOfLines={3}>
+            style={[
+              styles.scramble,
+              (!scramblerReady || !hasScramble) && styles.scramblePending,
+            ]}
+            numberOfLines={3}
+          >
             {running
               ? ' '
               : !scramblerReady
@@ -224,35 +245,14 @@ export default function TimerScreen({ onRunningChange }: Props) {
               ? movesToString(scramble)
               : 'toque em Embaralhar para gerar'}
           </Text>
-          <Pressable
-            onPress={replayScramble}
-            hitSlop={8}
-            disabled={!hasScramble || running}
-            accessibilityLabel="Repetir a animação do embaralhamento"
-            style={({ pressed }) => [
-              styles.roundButton,
-              !hasScramble && styles.roundButtonDisabled,
-              pressed && styles.pressed,
-            ]}>
-            <PlayIcon size={18} color={hasScramble ? colors.text : colors.muted} />
-          </Pressable>
-          <Pressable
-            onPress={resetCube}
-            hitSlop={8}
-            disabled={!hasScramble || running}
-            accessibilityLabel="Deixar o cubo resolvido"
-            style={({ pressed }) => [
-              styles.roundButton,
-              !hasScramble && styles.roundButtonDisabled,
-              pressed && styles.pressed,
-            ]}>
-            <CubeIcon size={17} color={hasScramble ? colors.text : colors.muted} />
-          </Pressable>
         </View>
 
         <View style={styles.timeRow}>
           {running && solveStartedAt !== null ? (
-            <RunningClock startedAt={solveStartedAt} style={[styles.time, { color: timeColor }]} />
+            <RunningClock
+              startedAt={solveStartedAt}
+              style={[styles.time, { color: timeColor }]}
+            />
           ) : phase !== 'idle' && inspectionStartedAt !== null ? (
             <InspectionClock
               startedAt={inspectionStartedAt}
@@ -268,12 +268,40 @@ export default function TimerScreen({ onRunningChange }: Props) {
         <View style={styles.stage} onLayout={onStageLayout}>
           {stageSize > 0 && (
             <View style={running ? styles.hidden : undefined}>
-              <Cube3D ref={cubeRef} size={stageSize} moves={scramble} playToken={playToken} />
+              <Cube3D
+                ref={cubeRef}
+                size={stageSize}
+                moves={scramble}
+                playToken={playToken}
+              />
             </View>
           )}
         </View>
 
-        <Text style={styles.hint}>{hint}</Text>
+        <View style={styles.toolRow}>
+          <Text style={styles.hint}>{hint}</Text>
+
+          <View style={[styles.toolButtons, running && styles.hidden]}>
+            <ToolButton
+              onPress={resetOrientation}
+              disabled={running}
+              label="Voltar o cubo para o ângulo inicial"
+            >
+              <RecenterIcon size={19} color={colors.text} />
+            </ToolButton>
+
+            <ToolButton
+              onPress={resetScramble}
+              disabled={!hasScramble || running}
+              label="Deixar o cubo resolvido e limpar o embaralhamento"
+            >
+              <CubeIcon
+                size={17}
+                color={hasScramble ? colors.text : colors.muted}
+              />
+            </ToolButton>
+          </View>
+        </View>
 
         <View style={[styles.buttonRow, running && styles.hidden]}>
           <Pressable
@@ -284,7 +312,8 @@ export default function TimerScreen({ onRunningChange }: Props) {
               styles.secondaryButton,
               !scramblerReady && styles.buttonDisabled,
               pressed && styles.pressed,
-            ]}>
+            ]}
+          >
             <Text style={styles.secondaryButtonText}>Embaralhar</Text>
           </Pressable>
 
@@ -297,12 +326,15 @@ export default function TimerScreen({ onRunningChange }: Props) {
               phase === 'holding' && styles.startButtonHolding,
               phase === 'ready' && styles.startButtonReady,
               pressed && phase === 'idle' && styles.pressed,
-            ]}>
+            ]}
+          >
             <Text
               style={[
                 styles.startButtonText,
-                (phase === 'holding' || phase === 'ready') && styles.startButtonTextArmed,
-              ]}>
+                (phase === 'holding' || phase === 'ready') &&
+                  styles.startButtonTextArmed,
+              ]}
+            >
               {startLabel}
             </Text>
           </Pressable>
@@ -319,6 +351,36 @@ export default function TimerScreen({ onRunningChange }: Props) {
         />
       )}
     </View>
+  );
+}
+
+function ToolButton({
+  onPress,
+  disabled,
+  label,
+  children,
+}: {
+  onPress: () => void;
+  disabled?: boolean;
+  /** Read out loud in place of the icon. */
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      hitSlop={8}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [
+        styles.roundButton,
+        disabled && styles.roundButtonDisabled,
+        pressed && styles.pressed,
+      ]}
+    >
+      {children}
+    </Pressable>
   );
 }
 
@@ -407,12 +469,21 @@ const styles = StyleSheet.create({
   hidden: {
     opacity: 0,
   },
+  toolRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  toolButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   hint: {
+    flex: 1,
     color: colors.muted,
     fontSize: 12,
     letterSpacing: 0.4,
     textTransform: 'uppercase',
-    textAlign: 'center',
   },
   buttonRow: {
     flexDirection: 'row',

@@ -51,7 +51,8 @@ export function ClockIcon({ size = 22, color }: IconProps) {
         borderRadius: size / 2,
         borderWidth: stroke,
         borderColor: color,
-      }}>
+      }}
+    >
       <View
         style={[
           styles.hand,
@@ -82,26 +83,46 @@ export function ClockIcon({ size = 22, color }: IconProps) {
   );
 }
 
-/** A play triangle: replays the animation of the scramble. */
-export function PlayIcon({ size = 22, color }: IconProps) {
-  const width = size * 0.6;
-  const height = size * 0.66;
+/** A crosshair: puts the cube back to the angle it started at. */
+export function RecenterIcon({ size = 22, color }: IconProps) {
+  const stroke = Math.max(1.5, size * 0.09);
+  const ring = size * 0.6;
+  const dot = size * 0.18;
+  const tick = size * 0.15;
 
   return (
     <View style={[styles.centred, { width: size, height: size }]}>
       <View
+        style={{
+          width: ring,
+          height: ring,
+          borderRadius: ring / 2,
+          borderWidth: stroke,
+          borderColor: color,
+        }}
+      />
+      <View
         style={[
-          styles.triangle,
+          styles.overlay,
           {
-            borderTopWidth: height / 2,
-            borderBottomWidth: height / 2,
-            borderLeftWidth: width,
-            borderLeftColor: color,
-            // Nudged right so the triangle looks centred, not just measured so.
-            marginLeft: width * 0.3,
+            width: dot,
+            height: dot,
+            borderRadius: dot / 2,
+            backgroundColor: color,
           },
         ]}
       />
+      {[
+        { width: stroke, height: tick, top: 0 },
+        { width: stroke, height: tick, bottom: 0 },
+        { width: tick, height: stroke, left: 0 },
+        { width: tick, height: stroke, right: 0 },
+      ].map((position, index) => (
+        <View
+          key={index}
+          style={[styles.overlay, position, { backgroundColor: color }]}
+        />
+      ))}
     </View>
   );
 }
@@ -113,11 +134,6 @@ const styles = StyleSheet.create({
   },
   overlay: {
     position: 'absolute',
-  },
-  // A triangle made out of borders: no font, no SVG.
-  triangle: {
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
   },
   grid: {
     flexDirection: 'row',
