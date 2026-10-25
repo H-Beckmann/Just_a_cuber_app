@@ -11,6 +11,8 @@ export interface Solve {
   penalty: Penalty;
   scramble: string;
   date: number;
+  /** Which of the user's cubes was used, when they said so. */
+  cubeId?: string | null;
 }
 
 /** `null` means DNF — i.e. the solve does not have a usable time. */

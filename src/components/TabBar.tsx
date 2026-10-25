@@ -65,7 +65,9 @@ export default function TabBar<Key extends string>({
               ]}
             >
               <tab.Icon size={21} color={color} />
-              <Text style={[styles.label, { color }]}>{tab.label}</Text>
+              <Text style={[styles.label, { color }]} numberOfLines={1}>
+                {tab.label}
+              </Text>
             </Pressable>
           );
         })}
@@ -83,6 +85,7 @@ const styles = StyleSheet.create({
   },
   bar: {
     flexDirection: 'row',
+    alignSelf: 'stretch',
     height: TAB_BAR_HEIGHT,
     paddingHorizontal: 8,
     borderRadius: TAB_BAR_HEIGHT / 2,
@@ -99,9 +102,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
   },
   item: {
-    minWidth: 92,
+    flex: 1,
     height: TAB_BAR_HEIGHT - 16,
-    paddingHorizontal: 18,
+    paddingHorizontal: 6,
     borderRadius: (TAB_BAR_HEIGHT - 16) / 2,
     alignItems: 'center',
     justifyContent: 'center',

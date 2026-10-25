@@ -11,7 +11,7 @@ import { colors } from '../theme';
 export default function TimesScreen() {
   const insets = useSafeAreaInsets();
   const bottomSpace = useTabBarSpace();
-  const { solves, setPenalty, deleteSolve, clearSession } = useSession();
+  const { solves, cubes, setPenalty, deleteSolve, clearSession } = useSession();
 
   const confirmClear = () => {
     Alert.alert(
@@ -67,6 +67,7 @@ export default function TimesScreen() {
 
       <SolveList
         solves={solves}
+        cubes={cubes}
         onSetPenalty={setPenalty}
         onDelete={deleteSolve}
         bottomSpace={bottomSpace}

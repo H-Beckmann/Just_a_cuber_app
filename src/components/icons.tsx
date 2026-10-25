@@ -127,6 +127,30 @@ export function RecenterIcon({ size = 22, color }: IconProps) {
   );
 }
 
+/** Three stacked lines: the menu. */
+export function MenuIcon({ size = 22, color }: IconProps) {
+  const stroke = Math.max(2, size * 0.1);
+  const width = size * 0.82;
+
+  return (
+    <View
+      style={[styles.centred, { width: size, height: size, gap: stroke * 1.6 }]}
+    >
+      {[0, 1, 2].map(index => (
+        <View
+          key={index}
+          style={{
+            width: index === 1 ? width * 0.72 : width,
+            height: stroke,
+            borderRadius: stroke,
+            backgroundColor: color,
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   centred: {
     alignItems: 'center',

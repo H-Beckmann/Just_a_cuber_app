@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Cube3D, { type Cube3DHandle } from '../components/Cube3D';
 import { CubeIcon, RecenterIcon } from '../components/icons';
+import SaveSolveModal from '../components/SaveSolveModal';
 import {
   InspectionClock,
   RunningClock,
@@ -19,6 +20,7 @@ import {
 } from '../components/LiveClock';
 import { useTabBarSpace } from '../components/TabBar';
 import { movesToString, type Move } from '../lib/cube';
+import { findById } from '../lib/myCubes';
 import {
   generateScramble,
   initScrambler,
@@ -33,6 +35,14 @@ const HOLD_MS = 350;
 
 type Phase = 'idle' | 'inspecting' | 'holding' | 'ready' | 'running';
 
+/** A finished solve waiting for the user to say whether to keep it. */
+interface PendingSolve {
+  ms: number;
+  penalty: Penalty;
+  scramble: string;
+  date: number;
+}
+
 interface Props {
   /** Lets the root hide the tab bar while a solve is being timed. */
   onRunningChange: (running: boolean) => void;
@@ -41,7 +51,15 @@ interface Props {
 export default function TimerScreen({ onRunningChange }: Props) {
   const insets = useSafeAreaInsets();
   const bottomSpace = useTabBarSpace();
-  const { lastSolve, addSolve, inspection, setInspection } = useSession();
+  const {
+    lastSolve,
+    addSolve,
+    inspection,
+    setInspection,
+    cubes,
+    lastCubeId,
+    setLastCubeId,
+  } = useSession();
 
   const [scramble, setScramble] = useState<Move[]>([]);
   const [playToken, setPlayToken] = useState(0);
@@ -52,6 +70,8 @@ export default function TimerScreen({ onRunningChange }: Props) {
   );
   const [solveStartedAt, setSolveStartedAt] = useState<number | null>(null);
   const [stageSize, setStageSize] = useState(0);
+  const [pending, setPending] = useState<PendingSolve | null>(null);
+  const [cubeForSolve, setCubeForSolve] = useState<string | null>(null);
 
   const cubeRef = useRef<Cube3DHandle>(null);
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -118,19 +138,43 @@ export default function TimerScreen({ onRunningChange }: Props) {
 
   const stopSolve = useCallback(() => {
     const now = Date.now();
-    const solve: Solve = {
-      id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
+    setPending({
       ms: now - (solveStartedAt ?? now),
       penalty: penaltyRef.current,
       scramble: movesToString(scramble),
       date: now,
-    };
+    });
+    // Offers the cube used last, unless it has been removed since.
+    setCubeForSolve(findById(cubes, lastCubeId) ? lastCubeId : null);
     penaltyRef.current = 'OK';
-    addSolve(solve);
     setSolveStartedAt(null);
     setPhase('idle');
+    // The next scramble only comes after the answer, so the one just used
+    // stays on screen while deciding.
+  }, [cubes, lastCubeId, scramble, solveStartedAt]);
+
+  const savePending = useCallback(() => {
+    if (pending === null) {
+      return;
+    }
+    const solve: Solve = {
+      id: `${pending.date}-${Math.random().toString(36).slice(2, 8)}`,
+      ms: pending.ms,
+      penalty: pending.penalty,
+      scramble: pending.scramble,
+      date: pending.date,
+      cubeId: cubeForSolve,
+    };
+    addSolve(solve);
+    setLastCubeId(cubeForSolve);
+    setPending(null);
     newScramble();
-  }, [addSolve, newScramble, scramble, solveStartedAt]);
+  }, [addSolve, cubeForSolve, newScramble, pending, setLastCubeId]);
+
+  const discardPending = useCallback(() => {
+    setPending(null);
+    newScramble();
+  }, [newScramble]);
 
   const handleStartPressIn = useCallback(() => {
     cubeRef.current?.finishNow();
@@ -340,6 +384,17 @@ export default function TimerScreen({ onRunningChange }: Props) {
           </Pressable>
         </View>
       </View>
+
+      <SaveSolveModal
+        visible={pending !== null}
+        ms={pending?.ms ?? 0}
+        penalty={pending?.penalty ?? 'OK'}
+        cubes={cubes}
+        selectedCubeId={cubeForSolve}
+        onSelectCube={setCubeForSolve}
+        onSave={savePending}
+        onDiscard={discardPending}
+      />
 
       {/* While the timer runs the whole screen stops it — including over the
           tab bar, which the root hides. */}

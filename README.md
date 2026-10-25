@@ -16,7 +16,10 @@ App de cubo mágico 3x3: gerador de embaralhamento + cronômetro de speedcubing.
   para começar, toque em qualquer lugar da tela para parar. Inspeção WCA de
   15s opcional, com +2 e DNF automáticos.
 - **Sessão.** Melhor tempo, ao5, ao12 e média, com penalidades editáveis por
-  tempo. Os tempos ficam salvos no aparelho.
+  tempo. Ao parar o cronômetro o app pergunta se o tempo vale e com qual cubo
+  foi feito — nada é salvo sem resposta. Os tempos ficam salvos no aparelho.
+- **Meus cubos.** Cadastro simples na aba Menu: cada tempo pode registrar com
+  qual cubo você resolveu.
 
 ## Como rodar
 
@@ -72,4 +75,8 @@ npm test
 | `src/lib/matrix.ts` | Matrizes 4x4 em column-major (o formato que o React Native espera em `transform: [{matrix}]`). |
 | `src/lib/stats.ts` | Tempos, penalidades e médias no padrão WCA. |
 | `src/components/Cube3D.tsx` | Render e animação dos giros. |
-| `src/screens/TimerScreen.tsx` | Tela principal. |
+| `src/lib/myCubes.ts` | Os cubos do usuário: nomes, busca e validação. |
+| `src/state/session.tsx` | Estado compartilhado: tempos, cubos e ajustes. |
+| `src/screens/TimerScreen.tsx` | Cronômetro, cubo e o aviso de salvar. |
+| `src/screens/TimesScreen.tsx` | Tempos da sessão. |
+| `src/screens/MenuScreen.tsx` | Menu e cadastro de cubos. |

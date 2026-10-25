@@ -9,16 +9,18 @@ import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import TabBar, { type TabDefinition } from '../components/TabBar';
-import { ClockIcon, CubeIcon } from '../components/icons';
+import { ClockIcon, CubeIcon, MenuIcon } from '../components/icons';
 import { colors } from '../theme';
+import MenuScreen from './MenuScreen';
 import TimerScreen from './TimerScreen';
 import TimesScreen from './TimesScreen';
 
-type TabKey = 'timer' | 'times';
+type TabKey = 'timer' | 'times' | 'menu';
 
 const TABS: TabDefinition<TabKey>[] = [
   { key: 'timer', label: 'Cronômetro', Icon: CubeIcon },
   { key: 'times', label: 'Tempos', Icon: ClockIcon },
+  { key: 'menu', label: 'Menu', Icon: MenuIcon },
 ];
 
 export default function RootScreen() {
@@ -32,6 +34,9 @@ export default function RootScreen() {
       </Layer>
       <Layer visible={active === 'times'}>
         <TimesScreen />
+      </Layer>
+      <Layer visible={active === 'menu'}>
+        <MenuScreen />
       </Layer>
 
       {/* Out of the way during a solve: the whole screen stops the timer, and

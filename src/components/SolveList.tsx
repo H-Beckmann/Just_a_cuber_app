@@ -1,22 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import {
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { cubeLabel, type MyCube } from '../lib/myCubes';
 import { formatSolve, type Penalty, type Solve } from '../lib/stats';
 import { colors } from '../theme';
+import BottomSheet from './BottomSheet';
 
 interface Props {
   solves: Solve[];
+  /** Used to name the cube each time was done with. */
+  cubes: MyCube[];
   onSetPenalty: (id: string, penalty: Penalty) => void;
   onDelete: (id: string) => void;
   /** Room left at the end of the list for the navigation bar. */
@@ -25,6 +18,7 @@ interface Props {
 
 export default function SolveList({
   solves,
+  cubes,
   onSetPenalty,
   onDelete,
   bottomSpace = 0,
@@ -54,93 +48,68 @@ export default function SolveList({
             Nenhum tempo ainda. Volte para o cubo e faça a primeira resolução.
           </Text>
         }
-        renderItem={({ item, index }) => (
-          <Pressable
-            onPress={() => setSelected(item)}
-            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-          >
-            <Text style={styles.index}>{solves.length - index}</Text>
-            <View style={styles.rowBody}>
-              <Text style={[styles.time, item.penalty === 'DNF' && styles.dnf]}>
-                {formatSolve(item)}
-              </Text>
-              <Text style={styles.scramble} numberOfLines={1}>
-                {item.scramble}
-              </Text>
-            </View>
-          </Pressable>
-        )}
+        renderItem={({ item, index }) => {
+          const cube = cubeLabel(cubes, item.cubeId);
+          return (
+            <Pressable
+              onPress={() => setSelected(item)}
+              style={({ pressed }) => [
+                styles.row,
+                pressed && styles.rowPressed,
+              ]}
+            >
+              <Text style={styles.index}>{solves.length - index}</Text>
+              <View style={styles.rowBody}>
+                <View style={styles.rowTop}>
+                  <Text
+                    style={[styles.time, item.penalty === 'DNF' && styles.dnf]}
+                  >
+                    {formatSolve(item)}
+                  </Text>
+                  {cube !== null && (
+                    <Text style={styles.cube} numberOfLines={1}>
+                      {cube}
+                    </Text>
+                  )}
+                </View>
+                <Text style={styles.scramble} numberOfLines={1}>
+                  {item.scramble}
+                </Text>
+              </View>
+            </Pressable>
+          );
+        }}
       />
 
-      <Modal
-        visible={selected !== null}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-        onRequestClose={close}
-      >
-        {/* A Modal is a window of its own, so it needs its own provider to
-            know where the system bars are. */}
-        <SafeAreaProvider>
-          <ActionSheet
-            solve={selected}
-            onClose={close}
-            onPenalty={applyPenalty}
-            onDelete={() => {
-              if (selected) {
-                onDelete(selected.id);
-              }
-              close();
-            }}
-          />
-        </SafeAreaProvider>
-      </Modal>
-    </>
-  );
-}
-
-function ActionSheet({
-  solve,
-  onClose,
-  onPenalty,
-  onDelete,
-}: {
-  solve: Solve | null;
-  onClose: () => void;
-  onPenalty: (penalty: Penalty) => void;
-  onDelete: () => void;
-}) {
-  const insets = useSafeAreaInsets();
-
-  return (
-    <Pressable style={styles.backdrop} onPress={onClose}>
-      <Pressable
-        style={[
-          styles.sheet,
-          {
-            // Clears the navigation buttons of the phone, which draw on top of
-            // the sheet; 16 keeps some air under the last button on gesture
-            // navigation, where the inset is small.
-            paddingBottom: Math.max(insets.bottom, 16) + 12,
-            paddingLeft: Math.max(insets.left, 20),
-            paddingRight: Math.max(insets.right, 20),
-          },
-        ]}
-        onPress={() => {}}
-      >
-        <View style={styles.grabber} />
-        <Text style={styles.sheetTime}>{solve ? formatSolve(solve) : ''}</Text>
-        <Text style={styles.sheetScramble}>{solve?.scramble}</Text>
+      <BottomSheet visible={selected !== null} onClose={close}>
+        <Text style={styles.sheetTime}>
+          {selected ? formatSolve(selected) : ''}
+        </Text>
+        {selected && cubeLabel(cubes, selected.cubeId) !== null && (
+          <Text style={styles.sheetCube}>
+            {cubeLabel(cubes, selected.cubeId)}
+          </Text>
+        )}
+        <Text style={styles.sheetScramble}>{selected?.scramble}</Text>
 
         <View style={styles.sheetRow}>
-          <SheetButton grow label="OK" onPress={() => onPenalty('OK')} />
-          <SheetButton grow label="+2" onPress={() => onPenalty('+2')} />
-          <SheetButton grow label="DNF" onPress={() => onPenalty('DNF')} />
+          <SheetButton grow label="OK" onPress={() => applyPenalty('OK')} />
+          <SheetButton grow label="+2" onPress={() => applyPenalty('+2')} />
+          <SheetButton grow label="DNF" onPress={() => applyPenalty('DNF')} />
         </View>
 
-        <SheetButton label="Excluir tempo" danger onPress={onDelete} />
-      </Pressable>
-    </Pressable>
+        <SheetButton
+          label="Excluir tempo"
+          danger
+          onPress={() => {
+            if (selected) {
+              onDelete(selected.id);
+            }
+            close();
+          }}
+        />
+      </BottomSheet>
+    </>
   );
 }
 
@@ -215,6 +184,11 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
+  rowTop: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+  },
   time: {
     color: colors.text,
     fontSize: 20,
@@ -223,29 +197,14 @@ const styles = StyleSheet.create({
   dnf: {
     color: colors.danger,
   },
+  cube: {
+    flex: 1,
+    color: colors.accent,
+    fontSize: 12,
+  },
   scramble: {
     color: colors.muted,
     fontSize: 11,
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: '#000000AA',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 12,
-    gap: 12,
-  },
-  grabber: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.border,
-    alignSelf: 'center',
-    marginBottom: 4,
   },
   sheetTime: {
     color: colors.text,
@@ -253,6 +212,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
+  },
+  sheetCube: {
+    color: colors.accent,
+    fontSize: 14,
+    textAlign: 'center',
   },
   sheetScramble: {
     color: colors.muted,
