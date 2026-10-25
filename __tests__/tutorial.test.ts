@@ -165,3 +165,124 @@ describe('last layer', () => {
     expect(order(algorithm('virar-cantos'))).toBe(6);
   });
 });
+
+/**
+ * The two last-layer steps tell the reader to hold a finished piece in a
+ * given spot and repeat. These walk that instruction over every position the
+ * last layer can be in, to make sure it always finishes — and to pin the
+ * number of repetitions the text promises.
+ */
+describe('following the written procedure finishes the job', () => {
+  const AUF = ['', 'U', 'U2', "U'"];
+
+  function centreColour(state: Sticker[], normal: number[]): string | undefined {
+    return state.find(
+      candidate =>
+        candidate.normal.join() === normal.join() &&
+        candidate.pos.filter(value => Math.abs(value) === 1.5).length === 1 &&
+        candidate.pos.every(value => Math.abs(value) === 1.5 || value === 0),
+    )?.face;
+  }
+
+  /** Top-layer pieces whose colours match the centres around them. */
+  function placed(state: Sticker[], spots: Record<string, string>): string[] {
+    const pieces = new Map<string, { colours: string[]; centres: (string | undefined)[] }>();
+
+    for (const sticker of state) {
+      const key = sticker.pos
+        .map((value, axis) => value - sticker.normal[axis] * 0.5)
+        .join(',');
+      if (!spots[key]) {
+        continue;
+      }
+      const piece = pieces.get(key) ?? { colours: [], centres: [] };
+      piece.colours.push(sticker.face);
+      piece.centres.push(centreColour(state, sticker.normal));
+      pieces.set(key, piece);
+    }
+
+    const ready: string[] = [];
+    for (const [key, { colours, centres }] of pieces) {
+      if ([...colours].sort().join() === [...centres].sort().join()) {
+        ready.push(spots[key]);
+      }
+    }
+    return ready;
+  }
+
+  /** Every position the last layer can reach through this algorithm. */
+  function reachable(moves: string): Sticker[][] {
+    const seen = new Map<string, Sticker[]>();
+    const key = (state: Sticker[]) =>
+      state.map(s => `${s.pos.join()}|${s.normal.join()}|${s.face}`).join(';');
+
+    const queue = [solved];
+    seen.set(key(solved), solved);
+
+    while (queue.length > 0) {
+      const state = queue.shift() as Sticker[];
+      for (const auf of AUF) {
+        const next = applyMoves(state, parseMoves(`${auf} ${moves}`), 3);
+        if (!seen.has(key(next))) {
+          seen.set(key(next), next);
+          queue.push(next);
+        }
+      }
+    }
+    return [...seen.values()];
+  }
+
+  /**
+   * Turn U looking for the spot the text describes, hold it in place and
+   * apply; when no turn of U shows exactly one finished piece, apply once
+   * anyway and look again. Returns how many times the algorithm ran.
+   */
+  function follow(
+    start: Sticker[],
+    moves: string,
+    spots: Record<string, string>,
+    hold: Record<string, string>,
+  ): number | null {
+    let state = start;
+
+    for (let round = 0; round < 8; round++) {
+      const views = AUF.map(auf => {
+        const turned = applyMoves(state, parseMoves(auf), 3);
+        return { turned, ready: placed(turned, spots) };
+      });
+
+      if (views.some(view => view.ready.length === 4)) {
+        return round;
+      }
+
+      const single = views.find(view => view.ready.length === 1);
+      if (single) {
+        state = applyMoves(single.turned, parseMoves(hold[single.ready[0]]), 3);
+      }
+      state = applyMoves(state, parseMoves(moves), 3);
+    }
+
+    return null;
+  }
+
+  it('places the four corners, whatever the layer looks like', () => {
+    const spots = { '1,1,1': 'FD', '-1,1,1': 'FE', '1,1,-1': 'TD', '-1,1,-1': 'TE' };
+    const hold = { FD: '', TD: 'y', TE: 'y2', FE: "y'" };
+    const moves = algorithm('posicionar-cantos');
+
+    const runs = reachable(moves).map(state => follow(state, moves, spots, hold));
+    expect(runs).not.toContain(null);
+    // Which is why the text says "apply it again if it does not close".
+    expect(Math.max(...(runs as number[]))).toBeLessThanOrEqual(3);
+  });
+
+  it('places the four edges, whatever the layer looks like', () => {
+    const spots = { '0,1,1': 'F', '1,1,0': 'D', '0,1,-1': 'T', '-1,1,0': 'E' };
+    const hold = { T: '', F: 'y2', D: "y'", E: 'y' };
+    const moves = algorithm('posicionar-arestas');
+
+    const runs = reachable(moves).map(state => follow(state, moves, spots, hold));
+    expect(runs).not.toContain(null);
+    expect(Math.max(...(runs as number[]))).toBeLessThanOrEqual(3);
+  });
+});

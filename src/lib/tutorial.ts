@@ -133,8 +133,10 @@ export const TUTORIAL: TutorialStep[] = [
     goal: 'Cada canto de cima no seu lugar, mesmo torto.',
     body: [
       'Antes de virar o amarelo dos cantos, leve cada um para o canto certo. Um canto está no lugar certo quando as três cores dele batem com os três centros ao redor — não importa se o amarelo está para o lado.',
-      'Procure um canto que já esteja certo e segure o cubo com ele na frente-direita de cima. O algoritmo gira os outros três entre si e não toca nesse.',
-      'Se nenhum canto estiver certo, aplique uma vez em qualquer posição: aparece pelo menos um, e aí você segura esse e repete.',
+      'Gire U e procure a posição em que exatamente um canto esteja certo. Segure o cubo com esse canto na frente-direita de cima: o algoritmo gira os outros três entre si e não toca nele.',
+      'Se você estiver vendo dois cantos certos, continue girando U — existe outra posição com só um, e é essa que serve.',
+      'Aplicou e não fechou? Aplique de novo com o mesmo canto na frente-direita. O giro de três pode ir para o lado contrário do que você precisa, e a segunda aplicação resolve.',
+      'Se nenhuma posição de U tiver exatamente um canto certo, aplique o algoritmo uma vez de qualquer jeito e procure outra vez. Do começo ao fim são no máximo três aplicações.',
     ],
     algorithms: [
       {
@@ -143,6 +145,8 @@ export const TUTORIAL: TutorialStep[] = [
         note: 'O canto da frente-direita fica parado.',
       },
     ],
+    warning:
+      'Segurar um canto certo quando há dois certos não funciona: o algoritmo mexe no outro, e você fica rodando sem fechar.',
   },
   {
     id: 'virar-cantos',
@@ -170,6 +174,7 @@ export const TUTORIAL: TutorialStep[] = [
     body: [
       'Falta rodar as quatro arestas de cima — as peças de duas cores entre os cantos. Gire U e procure um lado em que a aresta de cima já esteja na cor do centro daquele lado.',
       'Segure o cubo com essa aresta para trás. O algoritmo gira as outras três entre si.',
+      'Aplicou e o cubo não fechou? Aplique de novo, com a mesma aresta atrás. O giro de três tem um sentido só, e metade dos casos precisa dele duas vezes — é aqui que muita gente desiste achando que errou.',
       'Se nenhuma aresta estiver certa, aplique uma vez de qualquer jeito: uma delas acerta, e aí você a deixa atrás e repete.',
     ],
     algorithms: [
