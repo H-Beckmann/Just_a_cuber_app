@@ -153,8 +153,9 @@ export function stickerQuad(
 }
 
 /**
- * The two faces exposed at the cut while a layer turns — without them the cube
- * looks hollow mid-move.
+ * The faces exposed where the cube is cut open while a layer turns — without
+ * them it looks hollow mid-move. A face turn has one such plane; a slice,
+ * which leaves layers standing on both sides, has two.
  */
 export function cutQuads(
   layout: Layout,
@@ -166,42 +167,44 @@ export function cutQuads(
   const axisUnit: Vec3 = [0, 0, 0];
   axisUnit[spec.axis] = 1;
 
-  // Face of the part that stays still, looking towards the layer that left.
-  const staticNormal = axisUnit.map(value => value * spec.cutSide) as Vec3;
-  const staticCentre: Vec3 = [0, 0, 0];
-  staticCentre[spec.axis] = spec.cutCoord + 0.005 * spec.cutSide;
-
-  // Face of the turning layer, looking back at the body of the cube.
-  const layerNormal = axisUnit.map(value => -value * spec.cutSide) as Vec3;
-  const layerCentre: Vec3 = [0, 0, 0];
-  layerCentre[spec.axis] = spec.cutCoord - 0.005 * spec.cutSide;
-
   const quads: Quad[] = [];
 
-  const still = buildQuad(
-    layout,
-    'cut-static',
-    color,
-    staticCentre,
-    staticNormal,
-    n,
-  );
-  if (still) {
-    quads.push(still);
-  }
+  spec.cuts.forEach((cut, index) => {
+    // Face of the part that stays still, looking towards the layer that left.
+    const stillNormal = axisUnit.map(value => value * cut.side) as Vec3;
+    const stillCentre: Vec3 = [0, 0, 0];
+    stillCentre[spec.axis] = cut.coord + 0.005 * cut.side;
 
-  const turning = buildQuad(
-    layout,
-    'cut-layer',
-    color,
-    layerCentre,
-    layerNormal,
-    n,
-    rotation,
-  );
-  if (turning) {
-    quads.push(turning);
-  }
+    // Face of the turning layer, looking back at the body of the cube.
+    const layerNormal = axisUnit.map(value => -value * cut.side) as Vec3;
+    const layerCentre: Vec3 = [0, 0, 0];
+    layerCentre[spec.axis] = cut.coord - 0.005 * cut.side;
+
+    const still = buildQuad(
+      layout,
+      `cut-still-${index}`,
+      color,
+      stillCentre,
+      stillNormal,
+      n,
+    );
+    if (still) {
+      quads.push(still);
+    }
+
+    const turning = buildQuad(
+      layout,
+      `cut-layer-${index}`,
+      color,
+      layerCentre,
+      layerNormal,
+      n,
+      rotation,
+    );
+    if (turning) {
+      quads.push(turning);
+    }
+  });
 
   return quads;
 }

@@ -61,6 +61,19 @@ export interface Move {
   amount: 1 | 2 | 3;
   /** Number of layers turned: 1 = outer face, 2 = wide move (Rw). */
   wide: number;
+  /**
+   * A slice move: the layers between the two faces, turning the way this face
+   * does. M follows L, E follows D and S follows F.
+   */
+  slice?: boolean;
+}
+
+/** A plane where the turning layers are cut away from the rest. */
+export interface Cut {
+  /** Where the plane sits along the axis. */
+  coord: number;
+  /** +1 when the part that stays still is on the negative side of the plane. */
+  side: 1 | -1;
 }
 
 export interface MoveSpec {
@@ -71,10 +84,11 @@ export interface MoveSpec {
   quarters: number;
   /** Total rotation in radians, for the animation. */
   angle: number;
-  /** Coordinate of the plane where the turning layer is cut off. */
-  cutCoord: number;
-  /** +1 when the turning layers sit on the positive side of the axis. */
-  cutSide: 1 | -1;
+  /**
+   * Where the cube is cut open by this move: one plane for a face turn, two
+   * for a slice, which has still-standing layers on both sides.
+   */
+  cuts: Cut[];
 }
 
 export function solvedCube(n = 3): Sticker[] {
@@ -129,8 +143,15 @@ export function moveSpec(move: Move, n = 3): MoveSpec {
   const wide = Math.max(1, Math.min(move.wide, n));
 
   const layers = new Set<number>();
-  for (let i = 0; i < wide; i++) {
-    layers.add(positive ? n - 1 - i : i);
+  if (move.slice) {
+    // Everything but the two outer layers.
+    for (let i = 1; i < n - 1; i++) {
+      layers.add(i);
+    }
+  } else {
+    for (let i = 0; i < wide; i++) {
+      layers.add(positive ? n - 1 - i : i);
+    }
   }
 
   // A clockwise turn seen from outside the face is a negative rotation around
@@ -139,13 +160,24 @@ export function moveSpec(move: Move, n = 3): MoveSpec {
   const steps = move.amount === 3 ? -1 : move.amount === 2 ? 2 : 1;
   const quarters = clockwise * steps;
 
+  // The cube is cut open wherever a turning layer meets a still one.
+  const indices = [...layers].sort((a, b) => a - b);
+  const lowest = indices[0];
+  const highest = indices[indices.length - 1];
+  const cuts: Cut[] = [];
+  if (lowest > 0) {
+    cuts.push({ coord: -n / 2 + lowest, side: 1 });
+  }
+  if (highest < n - 1) {
+    cuts.push({ coord: -n / 2 + highest + 1, side: -1 });
+  }
+
   return {
     axis,
     layers,
     quarters,
     angle: (quarters * Math.PI) / 2,
-    cutCoord: positive ? n / 2 - wide : -n / 2 + wide,
-    cutSide: positive ? 1 : -1,
+    cuts,
   };
 }
 
@@ -270,7 +302,9 @@ export function invertMoves(moves: Move[]): Move[] {
 export function moveToString(move: Move): string {
   const rotation =
     move.wide >= WHOLE_CUBE ? FACE_TO_ROTATION[move.face] : undefined;
-  const base = rotation ?? (move.wide > 1 ? `${move.face}w` : move.face);
+  const slice = move.slice ? FACE_TO_SLICE[move.face] : undefined;
+  const base =
+    slice ?? rotation ?? (move.wide > 1 ? `${move.face}w` : move.face);
   const suffix = move.amount === 2 ? '2' : move.amount === 3 ? "'" : '';
   return base + suffix;
 }
@@ -292,7 +326,11 @@ const FACE_TO_ROTATION: Partial<Record<Face, string>> = {
 };
 const WHOLE_CUBE = 3;
 
-const MOVE_PATTERN = /^([URFDLBxyz])(w?)(2|'|’)?$/;
+/** Slice moves, each turning the way the face it follows does. */
+const SLICE_TO_FACE: Record<string, Face> = { M: 'L', E: 'D', S: 'F' };
+const FACE_TO_SLICE: Partial<Record<Face, string>> = { L: 'M', D: 'E', F: 'S' };
+
+const MOVE_PATTERN = /^([URFDLBMESxyz])(w?)(2|'|’)?$/;
 
 export function parseMove(token: string): Move | null {
   const match = MOVE_PATTERN.exec(token.trim());
@@ -301,10 +339,16 @@ export function parseMove(token: string): Move | null {
   }
   const [, letter, wide, suffix] = match;
   const rotation = ROTATION_TO_FACE[letter];
+  const sliceFace = SLICE_TO_FACE[letter];
+  const amount = suffix === '2' ? 2 : suffix ? 3 : 1;
+
+  if (sliceFace) {
+    return { face: sliceFace, wide: 1, amount, slice: true };
+  }
   return {
     face: rotation ?? (letter as Face),
     wide: rotation ? WHOLE_CUBE : wide ? 2 : 1,
-    amount: suffix === '2' ? 2 : suffix ? 3 : 1,
+    amount,
   };
 }
 

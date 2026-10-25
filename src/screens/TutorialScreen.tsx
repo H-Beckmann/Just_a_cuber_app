@@ -109,6 +109,12 @@ export default function TutorialScreen({ onBack }: { onBack: () => void }) {
         {TUTORIAL.map((step, index) => (
           <Step key={step.id} step={step} number={index + 1} onPlay={play} />
         ))}
+
+        <Text style={styles.credit}>
+          Os sete passos, os algoritmos e os nomes das peças seguem o tutorial
+          do blog ONCUBE (blog.oncube.com.br). O texto aqui é próprio, e cada
+          algoritmo foi conferido no motor de cubo do app.
+        </Text>
       </ScrollView>
     </View>
   );
@@ -242,6 +248,15 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 14,
     lineHeight: 20,
+  },
+  credit: {
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 18,
+    fontStyle: 'italic',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    paddingTop: 14,
   },
   step: {
     gap: 8,

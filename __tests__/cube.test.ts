@@ -182,6 +182,31 @@ describe('whole-cube rotations', () => {
   });
 });
 
+describe('slice moves', () => {
+  it('turns only the layer in the middle', () => {
+    const spec = moveSpec(parseMoves('M')[0], 3);
+    expect([...spec.layers]).toEqual([1]);
+    // Cut open on both sides, unlike a face turn.
+    expect(spec.cuts).toHaveLength(2);
+  });
+
+  it('M follows L: the top centre ends up at the front', () => {
+    const turned = applyMoves(solvedCube(3), parseMoves('M'), 3);
+    const centre = turned.find(
+      sticker =>
+        sticker.face === 'U' &&
+        sticker.pos.filter(value => Math.abs(value) === 1.5).length === 1 &&
+        sticker.pos.every(value => Math.abs(value) === 1.5 || value === 0),
+    );
+    expect(centre?.normal).toEqual([0, 0, 1]);
+  });
+
+  it('a face turn is cut open on one side only', () => {
+    expect(moveSpec(parseMoves('R')[0], 3).cuts).toHaveLength(1);
+    expect(moveSpec(parseMoves('L')[0], 3).cuts).toHaveLength(1);
+  });
+});
+
 describe('notation', () => {
   it('round-trips through text', () => {
     const text = "R U2 F' Rw' B2 D";
@@ -189,9 +214,12 @@ describe('notation', () => {
   });
 
   it('ignores tokens it does not understand', () => {
-    // M, E and S slices are not part of the notation here.
-    expect(movesToString(parseMoves('R M2 U'))).toBe('R U');
     expect(movesToString(parseMoves('R girar U'))).toBe('R U');
+    expect(movesToString(parseMoves('R 2 U'))).toBe('R U');
+  });
+
+  it('round-trips slice moves', () => {
+    expect(movesToString(parseMoves("M E' S2"))).toBe("M E' S2");
   });
 
   it('round-trips whole-cube rotations', () => {

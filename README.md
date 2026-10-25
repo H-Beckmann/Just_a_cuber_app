@@ -20,11 +20,13 @@ App de cubo mágico 3x3: gerador de embaralhamento + cronômetro de speedcubing.
   foi feito — nada é salvo sem resposta. Os tempos ficam salvos no aparelho.
 - **Meus cubos.** Cadastro simples na aba Menu: cada tempo pode registrar com
   qual cubo você resolveu.
-- **Tutorial.** O método iniciante passo a passo, da margarida à última camada,
-  com os algoritmos tocáveis: cada um toca no cubo 3D partindo exatamente do
-  caso que ele resolve. Os algoritmos são verificados por teste contra o motor
-  do cubo — se um deles mexesse numa camada que o texto diz preservar, o teste
-  quebraria.
+- **Tutorial.** O método iniciante em sete passos, na ordem e com os algoritmos
+  do [tutorial do blog ONCUBE](https://www.blog.oncube.com.br/tutoriais/tutorial-3x3x3/como-resolver-o-cubo-magico-metodo-basico-camadas-intro/),
+  incluindo os nomes de peça que a comunidade brasileira usa (centro, meio,
+  canto). Cada algoritmo é tocável e anima no cubo 3D a partir do caso que ele
+  resolve. Nada foi copiado na fé: os testes caminham cada procedimento por
+  todas as posições que a última camada pode assumir e conferem que sempre
+  fecha, no número de aplicações que o texto promete.
 
 ## Como rodar
 

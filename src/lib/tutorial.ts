@@ -1,12 +1,18 @@
 /**
- * The beginner's method, layer by layer, starting from the daisy.
+ * The beginner's method — layer by layer, in seven steps.
  *
- * Every algorithm here was checked against the cube engine: see
- * __tests__/tutorial.test.ts, which confirms that each one leaves the layers
- * it claims to leave alone and cycles the pieces the text says it cycles.
+ * It follows the ONCUBE tutorial (blog.oncube.com.br), including its order,
+ * its algorithms and the Brazilian names for the pieces: centro, meio, canto.
+ * Two steps come before theirs: the pieces and the notation.
  *
- * The text assumes the cube is held with yellow up and white down, which is
- * how the demo on screen shows it.
+ * Nothing here was taken on trust. Every algorithm, and every rule about how
+ * to hold the cube, was run against the cube engine — see
+ * __tests__/tutorial.test.ts, which walks each procedure over every position
+ * the last layer can be in and checks that it always finishes. The counts
+ * quoted in the text ("no máximo duas aplicações") come from those runs.
+ *
+ * The text holds the cube with yellow up and white down, which is how the
+ * demo on screen shows it.
  */
 
 export interface TutorialAlgorithm {
@@ -30,13 +36,13 @@ export const TUTORIAL: TutorialStep[] = [
   {
     id: 'pecas',
     title: 'As peças do cubo',
-    goal: 'Saber o que é centro, aresta e canto.',
+    goal: 'Saber o que é centro, meio e canto.',
     body: [
-      'O cubo não é feito de 54 adesivos soltos: são 26 peças de três tipos, e cada peça só vai parar onde cabe um tipo igual ao dela.',
-      'Centro: uma cor só, no miolo da face. Os seis centros nunca trocam de lugar entre si, então é o centro que decide a cor daquela face — se o centro de cima é amarelo, a face de cima é a amarela, mesmo que ainda não tenha nenhum amarelo em volta.',
-      'Aresta: duas cores, no meio de cada lado, entre dois cantos. São doze.',
+      'O cubo não é feito de 54 adesivos soltos: são 26 peças de três tipos, e cada peça só para onde cabe uma do mesmo tipo.',
+      'Centro: uma cor só, no miolo da face. São seis, e nunca trocam de lugar entre si — por isso é o centro que decide a cor da face. Se o centro de cima é amarelo, a face de cima é a amarela, mesmo que ainda não tenha nenhum amarelo em volta.',
+      'Meio: duas cores, entre dois centros. São doze. Em outros tutoriais essa peça aparece como "aresta" — é a mesma coisa.',
       'Canto: três cores, nas quinas. São oito.',
-      'Então, quando o tutorial falar "a aresta de cima", é uma das quatro peças de duas cores da camada de cima — a do meio de cada lado, não o centro, que fica no miolo e nunca sai de lá.',
+      'As cores opostas no padrão original: branco e amarelo, azul e verde, laranja e vermelho. Se o seu cubo for diferente, descubra quais são as opostas dele antes de começar.',
     ],
   },
   {
@@ -44,10 +50,11 @@ export const TUTORIAL: TutorialStep[] = [
     title: 'Como ler os movimentos',
     goal: 'Entender R, U, F e o resto antes de começar.',
     body: [
-      'Cada letra é uma face: R (direita), L (esquerda), U (cima), D (baixo), F (frente) e B (trás). A letra sozinha significa girar aquela face 90° no sentido horário, olhando de fora para ela.',
+      'Cada letra é uma face: R (direita), L (esquerda), U (cima), D (baixo), F (frente) e B (trás). A letra sozinha é girar aquela face 90° no sentido horário, olhando de fora para ela.',
       "O apóstrofo inverte: R' é anti-horário. O 2 é meia volta: R2 dá no mesmo nos dois sentidos.",
-      'As letras minúsculas x, y e z giram o cubo inteiro na mão, sem mexer em nenhuma camada em relação às outras. Servem só para mudar o que fica de frente.',
-      'Cuidado com uma pegadinha: D é girar a face de baixo horário vista de baixo. É fácil errar o sentido dessa.',
+      'M é a camada do meio, entre L e R, girando no mesmo sentido do L. Ela só aparece no último passo.',
+      'As letras minúsculas x, y e z giram o cubo inteiro na mão, sem mexer em nenhuma camada em relação às outras.',
+      'Durante um algoritmo, não gire o cubo na mão. Girar no meio da sequência é o jeito mais fácil de aplicar um movimento na face errada e desmontar o que já estava pronto.',
     ],
     algorithms: [
       {
@@ -58,57 +65,53 @@ export const TUTORIAL: TutorialStep[] = [
     ],
   },
   {
-    id: 'margarida',
-    title: 'A margarida',
-    goal: 'Quatro arestas brancas em volta do centro amarelo.',
+    id: 'cruz-branca',
+    title: '1. A cruz branca',
+    goal: 'Os quatro meios brancos na face branca, com as laterais casadas.',
     body: [
-      'Segure o cubo com o centro amarelo para cima. Procure as quatro arestas brancas — as peças de duas cores que tenham branco — e leve cada uma para junto do amarelo, formando uma flor.',
-      'Aqui não há algoritmo, e não precisa: gire a face lateral onde a aresta está até ela chegar em cima.',
-      'O único cuidado é não derrubar as pétalas já colocadas. Se o lugar de cima já estiver ocupado, gire U para abrir espaço antes de subir a próxima.',
+      'Esse é o único passo sem fórmula — é o que se resolve pensando, e por isso costuma ser o mais difícil no começo. O caminho mais fácil passa pela margarida.',
+      'Margarida: segure o cubo com o centro amarelo para cima e leve os quatro meios brancos para junto dele, formando uma flor. Achou um meio branco na lateral? Gire aquela camada para subi-lo. Está embaixo? Gire a face duas vezes para levá-lo direto para cima.',
+      'Se o lugar lá em cima já estiver ocupado por outro branco, gire U antes, para não derrubar a pétala que já estava lá.',
+      'Com a margarida pronta, transforme-a na cruz: escolha uma pétala, gire U até a cor lateral dela encontrar o centro da mesma cor e então gire aquela face 180° (F2, R2, L2 ou B2). O meio branco desce já casado.',
+      'Repita até não sobrar nenhum meio branco em cima. No fim, cada meio liga o centro branco ao centro da cor dele.',
     ],
+    warning:
+      'Girar 90° em vez de 180° coloca a peça no lugar errado. Nessa segunda etapa é sempre meia volta.',
   },
   {
-    id: 'cruz',
-    title: 'A cruz branca',
-    goal: 'As quatro arestas brancas na face branca, com as cores laterais batendo.',
+    id: 'primeira-camada',
+    title: '2. A primeira camada',
+    goal: 'A face branca inteira, com os cantos.',
     body: [
-      'Olhe uma pétala: além do branco, ela tem outra cor, virada para um dos lados. Gire U até essa cor ficar de frente para o centro da mesma cor.',
-      'Com as duas casadas, gire aquela face 180° — F2, R2, L2 ou B2. A aresta desce direto para o lugar dela na face branca.',
-      'Repita com as quatro. No fim, a face branca tem uma cruz e, visto de lado, cada aresta forma um T com o centro da cor dela.',
-    ],
-    warning: 'Girar só 90° coloca a peça no lugar errado. É sempre meia volta.',
-  },
-  {
-    id: 'cantos-brancos',
-    title: 'Os cantos brancos',
-    goal: 'A primeira camada inteira, branca e com as laterais certas.',
-    body: [
-      'Vire o cubo: branco para baixo, amarelo para cima. Agora faltam os quatro cantos brancos.',
-      'Procure um canto com branco na camada de cima e gire U até ele ficar exatamente acima do buraco dele — aquele entre os dois centros das outras duas cores dele.',
-      'Com o canto na frente-direita de cima, repita o algoritmo abaixo até ele descer encaixado. Pode precisar de uma, três ou cinco repetições, dependendo de como ele está virado.',
-      'Se um canto branco estiver preso embaixo no lugar errado, use o segundo algoritmo para tirá-lo para cima e recomece com ele.',
+      'Vire a cruz branca para baixo e não a tire mais de lá. Agora faltam os quatro cantos brancos.',
+      'O caso fácil é o canto branco estar na camada de cima com o branco virado para o lado. Olhe a cor ao lado do adesivo branco, gire U até essa cor encontrar o centro dela, e o canto ficará exatamente acima do buraco onde ele entra.',
+      'Aí é só ver de que lado o canto está e aplicar a fórmula correspondente. Ela é curta: joga a camada de cima para o lado oposto, levanta a lateral, devolve a camada de cima e desce a lateral.',
+      'Se o canto estiver na camada de cima com o branco para cima, ou preso embaixo no lugar errado, use as fórmulas de tirar: elas transformam o caso no caso fácil, e aí você resolve normalmente.',
     ],
     algorithms: [
+      { label: 'Canto à direita', moves: "U R U' R'" },
+      { label: 'Canto à esquerda', moves: "U' L' U L" },
       {
-        label: 'Encaixar o canto',
-        moves: "R U R' U'",
-        note: 'Repita até entrar.',
+        label: 'Branco para cima',
+        moves: "R U' R'",
+        note: 'Deixe o canto sobre um espaço ainda vazio.',
       },
       {
-        label: 'Tirar canto preso',
+        label: 'Preso embaixo',
         moves: "R U R'",
-        note: 'Com o canto na frente-direita de baixo.',
+        note: 'Com o canto à sua direita.',
       },
     ],
   },
   {
     id: 'segunda-camada',
-    title: 'A segunda camada',
-    goal: 'As quatro arestas da camada do meio no lugar.',
+    title: '3. A segunda camada',
+    goal: 'As quatro peças de meio da camada do meio no lugar.',
     body: [
-      'Agora só interessam as arestas de cima que não tenham amarelo. Gire U até a cor da frente dessa aresta casar com o centro da frente — ela forma um T de cabeça para baixo.',
-      'Olhe a cor de cima da aresta: se for igual ao centro da direita, ela precisa ir para a direita; se for igual ao da esquerda, para a esquerda.',
-      'Se não sobrar nenhuma aresta sem amarelo em cima, é porque alguma está no meio virada ou no lugar errado. Aplique um dos dois algoritmos com qualquer aresta de cima naquela posição: isso expulsa a intrusa para cima, e aí você a resolve normalmente.',
+      'Procure na camada de cima um meio que não tenha amarelo — nem no topo, nem na lateral.',
+      'Olhe a cor dele virada para você e gire U até ela encontrar o centro da mesma cor. A peça forma um T de cabeça para baixo com esse centro.',
+      'Agora olhe a cor de cima dessa mesma peça e veja de que lado está o centro daquela cor: é para lá que ela vai. Aplique a fórmula do lado certo.',
+      'Acabaram os meios sem amarelo e a camada não fechou? É porque tem uma peça errada encaixada, ou a certa mas invertida. Aplique qualquer uma das duas fórmulas no lugar dela: a intrusa sobe para a camada de cima, e aí você a encaixa direito.',
     ],
     algorithms: [
       { label: 'Para a direita', moves: "U R U' R' U' F' U F" },
@@ -117,72 +120,63 @@ export const TUTORIAL: TutorialStep[] = [
   },
   {
     id: 'cruz-amarela',
-    title: 'A cruz amarela',
+    title: '4. A cruz amarela',
     goal: 'Uma cruz amarela no topo, sem olhar as laterais.',
     body: [
-      'Daqui para frente só importa o amarelo de cima; as cores laterais do topo ficam para depois.',
-      'Olhe o desenho que o amarelo faz na face de cima. Pode ser um ponto, um L ou uma linha. O mesmo algoritmo atende aos três, aplicado na posição certa:',
-      'Linha: deixe-a deitada, na horizontal. L: gire U até as duas pontas apontarem para a esquerda e para cima. Ponto: aplique de qualquer jeito.',
+      'Daqui para frente só importa o amarelo de cima. Neste passo ignore os cantos e olhe apenas os meios.',
+      'O topo vai estar num de quatro estados: ponto, L, linha ou a cruz pronta. Uma única fórmula atende a todos, mudando só a posição em que você aplica.',
+      'Ponto: aplique de qualquer jeito. L: gire U até as duas pontas apontarem para a esquerda e para trás. Linha: deixe-a deitada, na horizontal.',
       'Ponto vira L, L vira linha, linha vira cruz. No pior caso são três aplicações.',
     ],
     algorithms: [{ label: 'Cruz amarela', moves: "F R U R' U' F'" }],
+    warning:
+      'Não dá para ficar com um ou três meios amarelos em cima. Se isso aconteceu, algo saiu errado antes — provavelmente na segunda camada.',
   },
   {
-    id: 'posicionar-cantos',
-    title: 'Posicionar os cantos amarelos',
-    goal: 'Cada canto de cima no seu lugar, mesmo torto.',
+    id: 'face-amarela',
+    title: '5. A face amarela',
+    goal: 'A face de cima toda amarela.',
     body: [
-      'Antes de virar o amarelo dos cantos, leve cada um para o canto certo. Um canto está no lugar certo quando as três cores dele batem com os três centros ao redor — não importa se o amarelo está para o lado.',
-      'Gire U e procure a posição em que exatamente um canto esteja certo. Segure o cubo com esse canto na frente-direita de cima: o algoritmo gira os outros três entre si e não toca nele.',
-      'Se você estiver vendo dois cantos certos, continue girando U — existe outra posição com só um, e é essa que serve.',
-      'Aplicou e não fechou? Aplique de novo com o mesmo canto na frente-direita. O giro de três pode ir para o lado contrário do que você precisa, e a segunda aplicação resolve.',
-      'Se nenhuma posição de U tiver exatamente um canto certo, aplique o algoritmo uma vez de qualquer jeito e procure outra vez. Do começo ao fim são no máximo três aplicações.',
+      'Agora os cantos. Conte quantos já estão com o amarelo para cima: serão zero, um ou dois, nunca três.',
+      'Use sempre o canto de cima da frente-esquerda como referência e gire U até deixá-lo assim: com zero amarelos em cima, um canto com o amarelo apontando para a esquerda; com dois, um canto com o amarelo apontando para a frente; com um, o próprio canto que já está amarelo.',
+      'Posicionado, aplique o Sune. Conte de novo e repita se ainda faltar — do começo ao fim são no máximo três aplicações.',
+    ],
+    algorithms: [{ label: 'Sune', moves: "R U R' U R U2 R'" }],
+    warning:
+      'No meio desse passo o cubo parece desmontado. É normal: enquanto você só girar U entre uma aplicação e outra, sem virar o cubo na mão, tudo volta ao lugar.',
+  },
+  {
+    id: 'permutar-cantos',
+    title: '6. Permutação dos cantos',
+    goal: 'Cada canto de cima no seu lugar.',
+    body: [
+      'Procure, numa das quatro laterais, dois cantos de cima mostrando a mesma cor — um par. Pode girar U para procurar.',
+      'Deixe esse par virado para a frente e aplique a fórmula. É a mais longa do método; atenção redobrada nos movimentos B e nos duplos.',
+      'Se não houver nenhum par, aplique a fórmula de qualquer jeito: o par aparece. Com o par na frente, são no máximo duas aplicações.',
+      'No fim, gire U até a última camada alinhar com as laterais.',
     ],
     algorithms: [
       {
-        label: 'Girar três cantos',
-        moves: "U R U' L' U R' U' L",
-        note: 'O canto da frente-direita fica parado.',
+        label: 'Permutar os cantos',
+        moves: "R B' R F2 R' B R F2 R2",
+        note: 'Com o par de cantos virado para a frente.',
       },
     ],
-    warning:
-      'Segurar um canto certo quando há dois certos não funciona: o algoritmo mexe no outro, e você fica rodando sem fechar.',
   },
   {
-    id: 'virar-cantos',
-    title: 'Virar os cantos amarelos',
-    goal: 'A face amarela inteira pronta.',
-    body: [
-      'Segure o cubo com um canto ainda torto na frente-direita de cima. Repita o algoritmo até o amarelo daquele canto apontar para cima — duas ou quatro vezes.',
-      'Sem girar o cubo na mão, gire só U para trazer o próximo canto torto para a mesma posição da frente-direita, e repita.',
-      'Quando todos estiverem virados, um último U fecha o resto.',
-    ],
-    algorithms: [
-      {
-        label: 'Virar o canto',
-        moves: "R' D' R D",
-        note: 'Duas ou quatro vezes.',
-      },
-    ],
-    warning:
-      'No meio desse passo o cubo parece todo desmontado. É normal: enquanto você não girar o cubo na mão e só mexer em U entre um canto e outro, tudo volta ao lugar no fim.',
-  },
-  {
-    id: 'posicionar-arestas',
-    title: 'Posicionar as arestas amarelas',
+    id: 'permutar-meios',
+    title: '7. Permutação dos meios',
     goal: 'Cubo resolvido.',
     body: [
-      'Falta rodar as quatro arestas de cima — as peças de duas cores entre os cantos. Gire U e procure um lado em que a aresta de cima já esteja na cor do centro daquele lado.',
-      'Segure o cubo com essa aresta para trás. O algoritmo gira as outras três entre si.',
-      'Aplicou e o cubo não fechou? Aplique de novo, com a mesma aresta atrás. O giro de três tem um sentido só, e metade dos casos precisa dele duas vezes — é aqui que muita gente desiste achando que errou.',
-      'Se nenhuma aresta estiver certa, aplique uma vez de qualquer jeito: uma delas acerta, e aí você a deixa atrás e repete.',
+      'Falta girar os meios de cima. Procure uma lateral que já esteja inteira, de uma cor só.',
+      'Deixe essa face virada para trás. A fórmula gira os outros três meios entre si e não toca no de trás.',
+      'Olhe para onde os meios precisam ir e escolha o sentido. As duas fórmulas são iguais, mudando só os dois movimentos de U.',
+      'Se nenhuma lateral estiver inteira, aplique qualquer uma das duas: uma face fecha, e aí você a deixa atrás e aplica de novo. São no máximo duas aplicações.',
+      'Esse é o único passo com o movimento M, a camada do meio. Segure as duas laterais com os dedos e gire só o miolo.',
     ],
     algorithms: [
-      {
-        label: 'Girar três arestas',
-        moves: "R U' R U R U R U' R' U' R2",
-        note: 'A aresta de trás fica parada.',
-      },
+      { label: 'Sentido horário', moves: "F2 U M' U2 M U F2" },
+      { label: 'Sentido anti-horário', moves: "F2 U' M' U2 M U' F2" },
     ],
   },
 ];
